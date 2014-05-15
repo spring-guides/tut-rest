@@ -79,7 +79,8 @@ public class Application {
     }
 
     @Bean
-    CommandLineRunner init(AccountRepository accountRepository, BookmarkRepository bookmarkRepository) {
+    CommandLineRunner init ( AccountRepository accountRepository, 
+                             BookmarkRepository bookmarkRepository) {
         return (args) -> {
             List<String> names = Arrays.asList("jhoeller", "dsyer", "pwebb", "jlong");
 
