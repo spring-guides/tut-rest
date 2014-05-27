@@ -9,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,6 +39,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.persistence.*;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,6 +56,36 @@ import java.util.stream.Collectors;
 @EnableAutoConfiguration
 public class Application {
 
+    // CORS
+    @Bean
+    FilterRegistrationBean corsFilter(@Value("${tagit.origin:}") String origin) {
+        return new FilterRegistrationBean(new Filter() {
+            public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+                    throws IOException, ServletException {
+                HttpServletRequest request = (HttpServletRequest) req;
+                HttpServletResponse response = (HttpServletResponse) res;
+                String method = request.getMethod();
+                response.setHeader("Access-Control-Allow-Origin", "http://localhost:9000");
+                response.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE");
+                response.setHeader("Access-Control-Max-Age", Long.toString(60 * 60));
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
+                if ("OPTIONS".equals(method)) {
+                    response.setStatus(HttpStatus.OK.value());
+                } else {
+                    chain.doFilter(req, res);
+                }
+            }
+
+            public void init(FilterConfig filterConfig) {
+            }
+
+            public void destroy() {
+            }
+        });
+    }
+
+    // expose HTTPS
     @Profile("ssl")
     @Bean
     EmbeddedServletContainerCustomizer containerCustomizer(@Value("${keystore.file}") Resource keystoreFile,
@@ -79,25 +114,16 @@ public class Application {
     }
 
     @Bean
-    CommandLineRunner init ( AccountRepository accountRepository, 
-                             BookmarkRepository bookmarkRepository) {
-        return (args) -> {
-            List<String> names = Arrays.asList("jhoeller", "dsyer", "pwebb", "jlong");
+    CommandLineRunner init(AccountRepository accountRepository,
+                           BookmarkRepository bookmarkRepository) {
+        return args ->
+                Arrays.asList("jhoeller", "dsyer", "pwebb", "jlong")
+                        .stream()
+                        .forEach(a -> {
+                            Account account = accountRepository.save(new Account(a, "password"));
+                            bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/" + a, "A description"));
+                        });
 
-            names.stream()
-                    .map(n -> new Account(n, "password"))
-                    .map(accountRepository::save)
-                    .collect(Collectors.toList());
-
-            names.stream()
-                    .forEach(a -> {
-                        Account account = accountRepository.findByUsername(a);
-                        Bookmark bookmark = new Bookmark(account, "http://bookmark.com/" + a, "A description");
-                        bookmarkRepository.save(bookmark);
-                    });
-
-
-        };
     }
 
     public static void main(String[] args) {
@@ -198,7 +224,7 @@ interface AccountRepository extends JpaRepository<Account, Long> {
 @Entity
 class Account {
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "account")
+    @OneToMany(mappedBy = "account")
     public Set<Bookmark> bookmarks = new HashSet<>();
 
     @Id
@@ -222,7 +248,7 @@ class Account {
 class Bookmark {
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     public Account account;
 
     @Id
