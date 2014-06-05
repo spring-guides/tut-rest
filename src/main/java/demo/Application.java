@@ -16,10 +16,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
@@ -36,7 +39,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.context.request.async.WebAsyncTask;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import reactor.spring.core.task.RingBufferAsyncTaskExecutor;
 
 import javax.persistence.*;
 import javax.servlet.*;
@@ -45,7 +51,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 //
 // curl -X POST -vu android-bookmarks:123456 http://localhost:8080/oauth/token -H "Accept: application/json" -d "password=password&username=jlong&grant_type=password&scope=write&client_secret=123456&client_id=android-bookmarks"
@@ -123,7 +130,6 @@ public class Application {
                             Account account = accountRepository.save(new Account(a, "password"));
                             bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/" + a, "A description"));
                         });
-
     }
 
     public static void main(String[] args) {
@@ -139,17 +145,16 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Override
     public void init(AuthenticationManagerBuilder auth) throws Exception {
-
         UserDetailsService userDetailsService = (username) -> {
             Account a = accountRepository.findByUsername(username);
             if (null != a) {
-                return new User(a.username, a.password, true, true, true, true, AuthorityUtils.createAuthorityList("USER", "write"));
+                return new User(a.username, a.password,
+                        true, true, true, true, AuthorityUtils.createAuthorityList("USER", "write"));
             } else {
                 throw new UsernameNotFoundException("couldn't find the user " + username);
             }
         };
         auth.userDetailsService(userDetailsService);
-
     }
 }
 
