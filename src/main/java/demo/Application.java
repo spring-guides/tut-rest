@@ -16,13 +16,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
@@ -39,10 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
-import org.springframework.web.context.request.async.WebAsyncTask;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import reactor.spring.core.task.RingBufferAsyncTaskExecutor;
 
 import javax.persistence.*;
 import javax.servlet.*;
@@ -51,8 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 //
 // curl -X POST -vu android-bookmarks:123456 http://localhost:8080/oauth/token -H "Accept: application/json" -d "password=password&username=jlong&grant_type=password&scope=write&client_secret=123456&client_id=android-bookmarks"
@@ -145,15 +137,12 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Override
     public void init(AuthenticationManagerBuilder auth) throws Exception {
-        UserDetailsService userDetailsService = (username) -> {
-            Account a = accountRepository.findByUsername(username);
-            if (null != a) {
-                return new User(a.username, a.password,
-                        true, true, true, true, AuthorityUtils.createAuthorityList("USER", "write"));
-            } else {
-                throw new UsernameNotFoundException("couldn't find the user " + username);
-            }
-        };
+        UserDetailsService userDetailsService =
+                (username) ->
+                        accountRepository.findByUsername(username)
+                                .map(a -> new User(a.username, a.password, true, true, true, true, AuthorityUtils.createAuthorityList("USER", "write")))
+                                .orElseThrow(() -> new UsernameNotFoundException("couldn't find user " + username));
+
         auth.userDetailsService(userDetailsService);
     }
 }
@@ -192,17 +181,19 @@ class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 class BookmarkRestController {
 
     @RequestMapping(method = RequestMethod.POST)
-    ResponseEntity<?> add(Principal principal,
-                          @RequestBody Bookmark input) {
+    ResponseEntity<?> add(Principal principal, @RequestBody Bookmark input) {
 
-        Account account = accountRepository.findByUsername(principal.getName());
-        Bookmark result = bookmarkRepository.save(new Bookmark(account, input.uri, input.description));
+        return accountRepository.findByUsername(principal.getName())
+                .map(a -> {
+                    Bookmark result = bookmarkRepository.save(new Bookmark(a, input.uri, input.description));
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    httpHeaders.setLocation(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                            .buildAndExpand(result.id)
+                            .toUri());
+                    return new ResponseEntity<>(null, httpHeaders, HttpStatus.CREATED);
+                })
+                .orElseThrow(() -> new RuntimeException("the username " + principal.getName() + " does not exist."));
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setLocation(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(result.id)
-                .toUri());
-        return new ResponseEntity<>(null, httpHeaders, HttpStatus.CREATED);
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -223,7 +214,7 @@ interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 }
 
 interface AccountRepository extends JpaRepository<Account, Long> {
-    Account findByUsername(String n);
+    Optional<Account> findByUsername(String n);
 }
 
 @Entity
