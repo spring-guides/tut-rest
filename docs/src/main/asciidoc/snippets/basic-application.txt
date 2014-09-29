@@ -1,0 +1,33 @@
+package bookmarks;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    @Bean
+    CommandLineRunner init(AccountRepository ar, BookmarkRepository br) {
+		return (evt) ->
+			Arrays.asList("jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack".split(","))
+			.forEach(a -> {
+ 				Account account = ar.save(new Account(a, "password"));
+				br.save(new Bookmark(
+					account, "http://bookmark.com/1/" + a, "A description"));
+				br.save(new Bookmark(
+					account, "http://bookmark.com/2/" + a, "A description"));
+			});
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+} 

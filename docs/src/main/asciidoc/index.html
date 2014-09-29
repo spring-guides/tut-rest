@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.1">
+<title>Building REST Services with Spring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic|Noto+Serif:400,400italic,700,700italic|Droid+Sans+Mono:400">
+<link rel="stylesheet" href="./asciidoctor.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', prettyPrint)</script>
+</head>
+<body class="book">
+<div id="header">
+<h1>Building REST Services with Spring</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>REST has quickly become the de-facto standard for building web services on the web because they&#8217;re easy to build and easy to consume.</p>
+</div>
+<div class="paragraph">
+<p>There&#8217;s a much larger discussion to be had about how REST fits in the world of microservices, but - for this tutorial - let&#8217;s just look at building RESTful services.</p>
+</div>
+<div class="paragraph">
+<p>Why REST? <a href="http://www.amazon.com/gp/product/0596805829?ie=UTF8&amp;tag=martinfowlerc-20&amp;linkCode=as2&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0596805829"><em>REST In Practice</em></a>   proffers, <a href="http://martinfowler.com">to borrow Martin Fowler&#8217;s phrasing</a>,  "the notion that the web is an existence proof of a massively scalable distributed system that works really well, and we can take ideas from that to build integrated systems more easily." I think that&#8217;s a pretty good reason: REST embraces the precepts of the web itself, and embraces its architecture, benefits and all.</p>
+</div>
+<div class="paragraph">
+<p>What benefits? Principally all those that come for free with HTTP as a platform itself. Application security (encryption and authentication) are known quantities today for which there are known solutions. Caching is built into the protocol. Service routing, through DNS, is a resilient and well-known system already ubiquitously support.</p>
+</div>
+<div class="paragraph">
+<p>REST, however ubiquitous, is not a standard, <em>per se</em>, but an approach, a style, a <em>constraint</em> on the HTTP protocol. Its implementation may vary in style, approach. As an API consumer this can be a frustrating experience. The quality of REST services varies wildly.</p>
+</div>
+<div class="paragraph">
+<p>Dr. Leonard Richardson put together a maturity model that interprets various levels of compliance with RESTful principles, and grades them.  It describes 4 levels, starting at <strong>level 0</strong>. Martin Fowler <a href="http://martinfowler.com/articles/richardsonMaturityModel.html">has a very good write-up on the maturity model</a></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Level 0</strong>: the Swamp of POX -  at this level, we&#8217;re just using HTTP as a transport. You could call SOAP a <strong>Level 0</strong> technoloogy. It uses HTTP, but as a transport. It&#8217;s worth mentioning that you could also use SOAP <a href="http://www.w3.org/TR/soapjms/">on top of something like JMS</a> with no HTTP at all. SOAP, thus, is <em>not</em> RESTful. It&#8217;s only just HTTP-aware.</p>
+</li>
+<li>
+<p><strong>Level 1</strong>: Resources - at this level, a service might use HTTP URIs to distinguish between nouns, or entities, in the system. For example, you might route requests to <code>/customers</code>, <code>/users</code>, etc. XML-RPC is an example of a <strong>Level 1</strong> technology: it uses HTTP, and it can use URIs to distinguish endpoints. Ultimately, though, XML-RPC is not RESTful: it&#8217;s using HTTP as a transport for something else (remote procedure calls).</p>
+</li>
+<li>
+<p><strong>Level 2</strong>: HTTP Verbs - this is the level you want to be at.  If you do <strong>everything</strong> wrong with Spring MVC, you&#8217;ll probably still end up here. At this level, services take advantage of native HTTP qualities like headers, status codes, distinct URIs, and more. This is where we&#8217;ll start our journey.</p>
+</li>
+<li>
+<p><strong>Level 3</strong>: Hypermedia Controls - This final level is where we&#8217;ll strive to be. Hypermedia, as practiced using the <a href="http://en.wikipedia.org/wiki/HATEOAS">HATEOAS</a> ("HATEOAS" is a truly welcome acronym for the mouthful, "Hypermedia as the Engine of Application State") design pattern. Hypermedia promtes service longevity by decoupling the consumer of a service from initimate knowledge of that service&#8217;s surface area and topology. It <strong>describes</strong> REST services. The service can answer questions about what to call, and when. We&#8217;ll look at this in depth later.</p>
+</li>
+</ul>
+</div>
+<div id="maturity-model" class="imageblock">
+<div class="content">
+<a class="image" href="http://martinfowler.com/articles/images/richardsonMaturityModel/overview.png"><img src="http://martinfowler.com/articles/images/richardsonMaturityModel/overview.png" alt="The Richardson Maturity Model" width="500"></a>
+</div>
+<div class="title">Figure 1. Leonard Richardson&#8217;s Maturity Model</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_started">Getting Started</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As we work through this tutorial, we&#8217;ll use <a href="http://spring.io/projects/spring-boot">Spring Boot</a> Spring Boot removes a lot of the boilerplate typical of application development. You can get started by going to the <a href="http://start.spring.io/">Spring Initializr</a>  and selecting the checkboxes that correspond to the <strong>type</strong> of workload your application will support. In this case, we&#8217;re going to build a <strong>web</strong> application. So, select "Web" and then choose  "Generate." A <code>.zip</code> will start downloading. Unzip it. In it, you&#8217;ll find a simple, Maven or Gradle-ready directory structure, complete with a Maven <code>pom.xml</code> and a Gradle <code>build.gradle</code>. Delete the build artifact you don&#8217;t want to use. Most people are using Maven these days, so - where appropriate - the examples in this tutorial will be Maven based. However, if you haven&#8217;t looked at Gradle, do. It&#8217;s <strong>very</strong> nice.</p>
+</div>
+<div class="paragraph">
+<p>Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. <a href="https://spring.io/tools/">The Spring Tool Suite</a> is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra <strong>oomph</strong> for your keystrokes. Here&#8217;s a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.</p>
+</div>
+<div class="videoblock">
+<div class="content">
+<iframe src="//www.youtube.com/embed/p8AdyMlpmPk?rel=0" frameborder="0" allowfullscreen></iframe>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_story_so_far">The Story so Far&#8230;&#8203;</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All of our examples will be based on Spring Boot. We&#8217;ll reprint the same setup code for each example. Our example models a simple bookmark service, à la Instapaper or other cloud-based bookmarking services. Our bookmark service simply collects a URI, and a description. All bookmarks belong to a user account. This relationship is modeled using JPA and Spring Data JPA repositories in [the <code>model</code> module](<a href="https://github.com/joshlong/bookmarks/tree/tutorial/model/" class="bare">https://github.com/joshlong/bookmarks/tree/tutorial/model/</a>).</p>
+</div>
+<div class="paragraph">
+<p>We won&#8217;t dive too much into the code. We&#8217;re using two JPA entities to  model the records as they&#8217;ll live in a database. We&#8217;re using a standard SQL database to store our records so that the domain is as immediately useful to as large an audience as possible.</p>
+</div>
+<div class="paragraph">
+<p>The first class models our user account. Aptly, with a JPA entity called <code>Account</code>, in <code>model/src/main/java/bookmarks/Account.java</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Amazingly, this class is one of the <em>noisiest</em> - mostly because of the Java language&#8217;s verbosity.</div>
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.HashSet;
+import java.util.Set;
+
+
+@Entity
+public class Account {
+
+    @OneToMany(mappedBy = "account")
+    private Set&lt;Bookmark&gt; bookmarks = new HashSet&lt;&gt;();
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    public Set&lt;Bookmark&gt; getBookmarks() {
+        return bookmarks;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    @JsonIgnore
+    public String password;
+    public String username;
+
+    public Account(String name, String password) {
+        this.username = name;
+        this.password = password;
+    }
+
+    Account() { // jpa only
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each <code>Account</code> may have no, one, or many <code>Bookmark</code> entities. This is a 1:N relationship. The code for the <code>Bookmark</code> entity is shown in <code>model/src/main/java/bookmarks/Bookmark.java</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+@Entity
+public class Bookmark {
+
+    @JsonIgnore
+    @ManyToOne
+    private Account account;
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    Bookmark() { // jpa only
+    }
+
+    public Bookmark(Account account, String uri, String description) {
+        this.uri = uri;
+        this.description = description;
+        this.account = account;
+    }
+
+    public String uri;
+    public String description;
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We&#8217;ll use <a href="https://spring.io/guides/gs/accessing-data-jpa/">two Spring Data JPA repositories</a> to handle the tedious database interactions. Spring Data repositories are typically interfaces with methods supporting reading, updating, deleting, and creating records against a backend data store. Some  repositories also typically support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface. There are multiple repository implementations besides the JPA ones. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc.</p>
+</div>
+<div class="paragraph">
+<p>One repository will manage our <code>Account</code> entities, called <code>AccountRepository</code>, shown in  <code>model/src/main/java/bookmarks/AccountRepository.java</code>. One custom finder-method, <code>findByUsername</code>, will, <em>basically</em>, create a JPA query of the form <code>select a from Account a where a.username = :username</code>, run it (passing in the method argument <code>username</code> as a named parameter for the query), and return the results for us. Convenient!</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface AccountRepository extends JpaRepository&lt;Account, Long&gt; {
+    Optional&lt;Account&gt; findByUsername(String username);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s the repository for working with <code>Bookmark</code> entities.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Collection;
+
+public interface BookmarkRepository extends JpaRepository&lt;Bookmark, Long&gt; {
+    Collection&lt;Bookmark&gt; findByAccountUsername(String username);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>BookmarkRepository</code> has a similar finder method, but this one dereferences the <code>username</code> property on the <code>Bookmark</code> entity&#8217;s <code>Account</code> relationship, ultimately requiring a join of some sort. The JPA query it generates is, <strong>roughly</strong>, <code>SELECT b from Bookmark b WHERE b.account.username = :username</code>.</p>
+</div>
+<div class="paragraph">
+<p>Our application will use Spring Boot. A Spring Boot application is, at a minimum, a <code>public static void main</code> entry-point and the <code>@EnableAutoConfiguration</code> annotation. This tells Spring Boot to help out, wherever possible. Our <code>Application</code> class is also a good place to stick of odds and ends, like <code>@Bean</code> definitions. Here&#8217;s what our simplest <code>Application.java</code> class will look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    @Bean
+    CommandLineRunner init(AccountRepository ar, BookmarkRepository br) {
+		return (evt) -&gt;
+			Arrays.asList("jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack".split(","))
+			.forEach(a -&gt; {
+ 				Account account = ar.save(new Account(a, "password"));
+				br.save(new Bookmark(
+					account, "http://bookmark.com/1/" + a, "A description"));
+				br.save(new Bookmark(
+					account, "http://bookmark.com/2/" + a, "A description"));
+			});
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once started, Spring Boot will call all beans of type <code>CommandLineRunner</code>, giving them a callback. In this case, <code>CommandLineRunner</code> is an interface with one <strong>abstract</strong> method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn&#8217;t use Java 6 or 7, simply substituting the more concise lamba syntax for a slightly more verbose anonymous innner class implementing the interface in question.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_http_is_the_platform">HTTP is the Platform</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>HTTP URIs are a natural way to describe hierarchies, or relationships. For example, we might start our REST API at the account level. All URIs start with an account&#8217;s username. Thus, for an account named <code>bob</code>, we might address that account as <code>/users/bob</code> or even just <code>/bob</code>. To access the collection of bookmarks for that user, we can <strong>descend</strong> one level down (like a file system) to the <code>/bob/bookmarks</code> resource.</p>
+</div>
+<div class="paragraph">
+<p>REST does <strong>not</strong> prescribe a representation or encoding. REST, short for <strong>Representational STate Transfer</strong>, defers to HTTP&#8217;s content-negotiation mechanism to let clients and services agree upon a mutually understood representation of data coming from a service, if possible. There are many ways to handle content negotiation, but in the simplest case, a client sends a request with an <code>Accept</code> header that specifies a comma-delimited list of acceptable mime types (for example: <code>Accept: application/json, application/xml, <strong>/</strong></code>). If the service can produce any of those mime types, it responds with a representation in the first understood mime type.</p>
+</div>
+<div class="paragraph">
+<p>We can use HTTP verbs to manipulate the data represented by those URIs.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the HTTP <code>GET</code> verb tells the service to <strong>get</strong>, or retreive, the resource designated by a URI. How it does this is, of course, implementation specific. The backend code might talk to a database, a file system, another webservice, etc. The client doesn&#8217;t need to be aware of this, though. To the client, all resources are HTTP resources, and in the world of HTTP, there&#8217;s only one way to ask for data: <code>GET</code>. <code>GET</code> calls have no body in the request, but typically return a body. The response to an HTTP <code>GET</code> request for  <code>/bob/bookmarks/6</code> might look like:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-json" data-lang="json"> 	{
+		id: 6,
+		uri: "http://bookmark.com/2/bob",
+		description: "A description"
+	}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the HTTP <code>DELETE</code> verb tells the service to remove the resource designated by a URI. Again, this is implementation specific.   <code>DELETE</code> calls have no body.</p>
+</li>
+<li>
+<p>the HTTP <code>PUT</code> verb tells the service to update the resource designated by a URI with the body of the enclosed request. Thus, to update the resource at <code>/bob/bookmarks</code>, I might send the same JSON representation returned from the <code>GET</code> call, with updated fields. The service will <strong>replace</strong> the value.</p>
+</li>
+<li>
+<p>the HTTP <code>POST</code> verb tells the service to <strong>do something</strong> with the enclosed body of the request. There&#8217;s no hard and fast rules here, but typically an HTTP <code>POST</code> call to <code>/bob/bookmarks</code> will <strong>add</strong>, or <strong>append</strong>, the enclosed body to the collection (database, filesystem, whatever) designated by the <code>/bob/bookmarks</code> URI. It can be a little confusing, though. An HTTP <code>POST</code> to <code>/bob/bookmarks/1</code>, on the other hand, might be treated in the same way as an HTTP <code>PUT</code> call; the service could take the enclosed body and use it to <strong>replace</strong> the resource designated by the URI.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Of course, sometimes things don&#8217;t go to plan. Perhaps the browser timed out, or the service has timed out, or the service encounters an error. We&#8217;ve all gotten the annoying 404 ("Page not found") error when attempting to visit a page that doesn&#8217;t exist or couldn&#8217;t be routed to correctly. That 404 is a <strong>status code</strong>. It conveys information about the state of the operation. There are <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes"><strong>many</strong> status codes</a> divided along ranges for different purposes. When you make a request to a webpage in the browser, it is an HTTP <code>GET</code> call, and - if the page shows up - it will have returned a 200 status code. 200 means <code>OK</code>; you may not know it, but it&#8217;s there.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Status codes in the <strong>100x range</strong> (from 100-199) are <strong>informational</strong>, and describe the processing fo the request.</p>
+</li>
+<li>
+<p>Status codes in the <strong>200x range</strong> (from 200-299) indicate  the action requested by the client was received, understood, accepted and processed successfully</p>
+</li>
+<li>
+<p>Status codes in the <strong>300x range</strong> (from 300-399) indicate  that the client must take additional action to complete the request, such as following a <strong>redirect</strong></p>
+</li>
+<li>
+<p>Status codes in the <strong>400x range</strong> (from 400-499)   is intended for cases in which the client seems to have errored and must correct the request before continuing. The aforementioned 404 is an example of this.</p>
+</li>
+<li>
+<p>Status codes in the <strong>500x range</strong> (from 500-599)  is intended for cases where the server failed to fulfill an apparently valid request.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_a_rest_service">Building a REST service</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first cut of a bookmark REST service should at least support reading from, and adding to, an account&#8217;s bookmarks, as well as reading individual ones. Below is the first cut at our REST service, in <code>/rest/src/main/java/bookmarks/Application.java</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    @Bean
+    CommandLineRunner init(AccountRepository accountRepository, BookmarkRepository bookmarkRepository) {
+        return (evt) -&gt;
+                Arrays.asList("jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack,jlong".split(","))
+                        .forEach(a -&gt; {
+                            Account account = accountRepository.save(new Account(a, "password"));
+                            bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/1/" + a, "A description"));
+                            bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/2/" + a, "A description"));
+                        });
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+@RestController
+@RequestMapping("/{userId}/bookmarks")
+class BookmarkRestController {
+
+    private final BookmarkRepository bookmarkRepository;
+
+    private final AccountRepository accountRepository;
+
+    @RequestMapping(method = RequestMethod.POST)
+    ResponseEntity&lt;?&gt; add(@PathVariable String userId, @RequestBody Bookmark input) {
+        this.validateUser(userId);
+        return this.accountRepository.findByUsername(userId)
+            .map(
+                account -&gt; {
+                    Bookmark result = bookmarkRepository.save(new Bookmark(account, input.uri, input.description));
+
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    httpHeaders.setLocation(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                            .buildAndExpand(result.getId())
+                            .toUri());
+                    return new ResponseEntity&lt;&gt;(null, httpHeaders, HttpStatus.CREATED);
+                }
+        ).get();
+
+    }
+
+    @RequestMapping(value = "/{bookmarkId}", method = RequestMethod.GET)
+    Bookmark readBookmark(@PathVariable String userId, @PathVariable Long bookmarkId) {
+        this.validateUser(userId);
+        return this.bookmarkRepository.findOne(bookmarkId);
+    }
+
+    @RequestMapping(method = RequestMethod.GET)
+    Collection&lt;Bookmark&gt; readBookmarks(@PathVariable String userId) {
+        this.validateUser(userId);
+        return this.bookmarkRepository.findByAccountUsername(userId);
+    }
+
+    @Autowired
+    BookmarkRestController(BookmarkRepository bookmarkRepository, AccountRepository accountRepository) {
+        this.bookmarkRepository = bookmarkRepository;
+        this.accountRepository = accountRepository;
+    }
+
+    private void validateUser(String userId) {
+        this.accountRepository.findByUsername(userId).orElseThrow(() -&gt; new UserNotFoundException(userId));
+    }
+}
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+class UserNotFoundException extends RuntimeException {
+
+    public UserNotFoundException(String userId) {
+        super("could not find user '" + userId + "'.");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>BookmarkRestController</code> is a simple Spring MVC <code>@RestController</code>-annotated component. <code>@RestController</code> exposes the annotated bean&#8217;s methods as HTTP endpoints using metadata furnished by the <code>@RequestMapping</code> annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the   <code>@RequestMapping</code> annotation on the method.</p>
+</div>
+<div class="paragraph">
+<p><code>@RestController</code>, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are <strong>contextual</strong>. For example, the <code>BookmarkRestController</code> handles <strong>all</strong> requests that start with a username (like <code>bob</code>) followed by <code>/bookmarks</code>. Any methods in the type that further qualify the URI, like <code>readBookmark</code>, are <strong>added</strong> to the root request mapping. Thus, <code>readBookmark</code> is, in effect, mapped to <code>/{userId}/bookmarks/{bookmarkId}</code>. Methods that don&#8217;t specify a path just inherit the path mapped at the type level. The <code>add</code> method responds to the URI specified at the type level, but it <strong>only</strong> responds to HTTP requests with the verb</p>
+</div>
+<div class="paragraph">
+<p>The <code>{userId}</code> and <code>{bookmarkId}</code> tokens in the path are <strong>path variables</strong>. They&#8217;re globs, or wildcards. Spring MVC will extract those portions of the URI, and make them available as arguments of the same name that are  passed to the controller method and annotated with <code>@PathVariable</code>. For an HTTP <code>GET</code> request to the URI <code>/bob/bookmarks/4234</code>, the <code>@PathVariable String userId</code> argument will be <code>"bob"</code>, and the <code>@PathVariable Long bookmarkId</code> will be coerced to a <code>long</code> value of <code>4234</code>.</p>
+</div>
+<div class="paragraph">
+<p>These controller methods return simple POJOs - <code>Collection&lt;Bookmark&gt;</code>, and <code>Bookmark</code>, etc., in all but the <code>add</code> case. When an HTTP request comes in that specifies an <code>Accept</code> header, Spring MVC loops through the configured <code>HttpMessageConverter</code> until it finds one that can convert from the POJO domain model types into the content-type specified in the <code>Accept</code> header, if so configured. Spring Boot automatically wires up  an <code>HttpMessageConverter</code> that can convert generic <code>Object</code> s to <a href="http://www.json.org">JSON</a>, absent any more specific converter. <code>HttpMessageConverter</code> s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>curl</code> (or your browser) to see the JSON response from <code><a href="http://localhost:8080/jhoeller/bookmarks" class="bare">http://localhost:8080/jhoeller/bookmarks</a></code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>add</code> method specifies a parameter of type <code>Bookmark</code> - a POJO. Spring MVC will convert the incoming HTTP request (containing, perhaps, valid JSON) to a POJO using the appropriate <code>HttpMessageConverter</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>add</code> method accepts incoming HTTP requests, saves them and then sends back a <code>ResponseEntity&lt;T&gt;</code>. <code>ResponseEntity</code> is a wrapper for a response  and, optionally, HTTP headers and a status code. The <code>add</code> method sends back a <code>ResponseEntity</code> with a status code of 201 (<code>CREATED</code>) and a header (<code>Location</code>) that the client can consult to learn how the newly created record is referenable. It&#8217;s a bit like extracting the just generated primary key after saving a record in the database.</p>
+</div>
+<div class="paragraph">
+<p>There are paths not taken. By default Spring Boot sets up a pretty generous collection of <code>HttpMessageConverter</code> implementations suitable for common use, but it&#8217;s easy to add support for other, perhaps more compact, network-efficient formats (<a href="http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/converter/protobuf/ProtobufHttpMessageConverter.html">like the Google Protocol Buffers implementation in Spring 4.1</a>) using the usual Spring MVC configuration.</p>
+</div>
+<div class="paragraph">
+<p>Spring MVC natively supports file uploads via controller arguments of type <code>MultipartFile multipartFile</code>.</p>
+</div>
+<div class="paragraph">
+<p>Spring MVC makes it easy to write service-oriented code whose shape is untainted by <code>HttpServlet</code> APIs.
+This code can be easily unit tested, extended through Spring AOP. We&#8217;ll look at how to unit test these Spring MVC components in the next section.</p>
+</div>
+<div class="sect2">
+<h3 id="_using_http_to_signal_errors">Using HTTP to signal Errors</h3>
+<div class="paragraph">
+<p>All the methods in the REST service call <code>validateUser</code> which in turn verifies that the user in question exists and - if it doesn&#8217;t - throws a <code>UserNotFoundException</code>. The definition of this exception is shown. It&#8217;s annotated with a Spring MVC <code>@ResponseStatus(HttpStatus.NOT_FOUND)</code> which tells Spring MVC to send back an HTTP status code (404) whenever this exception is triggered. This is a <em>really</em> nice arrangement: you can think in terms of your business domain in your code <em>and</em> you get smart handling that maps nicely to how HTTP signals erros to the client, using status codes. Spring MVC provides a <em>lot</em> of different places to cleanly <a href="https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc">layer in generic, application-global and controller-local error handling logic</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_testing_a_rest_service">Testing a REST Service</h3>
+<div class="paragraph">
+<p>Spring MVC provides great support <a href="http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/testing.html#spring-mvc-test-framework">for unit testing HTTP endpoints</a>. It provides a very nice middle ground between unit-testing and integration-testing in that it lets you stand up the entire Spring MVC <code>DispatcherServlet</code>-based machinery - including validators, <code>HttpMessageConverter</code> s, and more - and then run tests against them <em>without</em> actually starting up a <em>real</em> HTTP service: the best of both worlds! It&#8217;s an integration-test in that the logic you care about is actually being exercised, but it&#8217;s a unit-test in that you&#8217;re not actually waiting for a web server to initialize and start servicing requests.</p>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s the unit-test for the <code>ReservationRestController</code>, in <code>/rest/src/test/java/bookmarks/BookmarkRestControllerTest.java</code>. This should look familiar to anybody who has written a JUnit unit test before. At the top, we use the <code>@SpringApplicationConfiguration(classes = Application.class)</code> annotation (from Spring Boot) to tell the <code>SpringJUnit4ClassRunner</code> where it should get information about the Spring application under test. The <code>@WebAppConfiguration</code> annotation tells JUnit that this is a unit test for Spring MVC web components and should thus run under a <code>WebApplicationContext</code> variety, not a standard <code>ApplicationContext</code> implementation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.http.MockHttpOutputMessage;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+
+/**
+ * @author Josh Long
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = Application.class)
+@WebAppConfiguration
+public class BookmarkRestControllerTest {
+
+
+    private MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
+            MediaType.APPLICATION_JSON.getSubtype(),
+            Charset.forName("utf8"));
+
+    private MockMvc mockMvc;
+
+    private String userName = "bdussault";
+
+    private HttpMessageConverter mappingJackson2HttpMessageConverter;
+
+    private Account account;
+
+    private List&lt;Bookmark&gt; bookmarkList = new ArrayList&lt;&gt;();
+
+    @Autowired
+    private BookmarkRepository bookmarkRepository;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    void setConverters(HttpMessageConverter&lt;?&gt;[] converters) {
+
+        this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream().filter(
+                hmc -&gt; hmc instanceof MappingJackson2HttpMessageConverter).findAny().get();
+
+        Assert.assertNotNull("the JSON message converter must not be null",
+                this.mappingJackson2HttpMessageConverter);
+    }
+
+    @Before
+    public void setup() throws Exception {
+        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+
+        this.bookmarkRepository.deleteAllInBatch();
+        this.accountRepository.deleteAllInBatch();
+
+        this.account = accountRepository.save(new Account(userName, "password"));
+        this.bookmarkList.add(bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/1/" + userName, "A description")));
+        this.bookmarkList.add(bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/2/" + userName, "A description")));
+    }
+
+    @Test
+    public void userNotFound() throws Exception {
+        mockMvc.perform(post("/george/bookmarks/")
+                .content(this.json(new Bookmark()))
+                .contentType(contentType))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void readSingleBookmark() throws Exception {
+        mockMvc.perform(get("/" + userName + "/bookmarks/"
+                + this.bookmarkList.get(0).getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$.id", is(this.bookmarkList.get(0).getId().intValue())))
+                .andExpect(jsonPath("$.uri", is("http://bookmark.com/1/" + userName)))
+                .andExpect(jsonPath("$.description", is("A description")));
+    }
+
+    @Test
+    public void readBookmarks() throws Exception {
+        mockMvc.perform(get("/" + userName + "/bookmarks"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id", is(this.bookmarkList.get(0).getId().intValue())))
+                .andExpect(jsonPath("$[0].uri", is("http://bookmark.com/1/" + userName)))
+                .andExpect(jsonPath("$[0].description", is("A description")))
+                .andExpect(jsonPath("$[1].id", is(this.bookmarkList.get(1).getId().intValue())))
+                .andExpect(jsonPath("$[1].uri", is("http://bookmark.com/2/" + userName)))
+                .andExpect(jsonPath("$[1].description", is("A description")));
+    }
+
+    @Test
+    public void createBookmark() throws Exception {
+        String bookmarkJson = json(new Bookmark(
+                this.account, "http://spring.io", "a bookmark to the best resource for Spring news and information"));
+        this.mockMvc.perform(post("/" + userName + "/bookmarks")
+                .contentType(contentType)
+                .content(bookmarkJson))
+                .andExpect(status().isCreated());
+    }
+
+    protected String json(Object o) throws IOException {
+        MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
+        this.mappingJackson2HttpMessageConverter.write(
+                o, MediaType.APPLICATION_JSON, mockHttpOutputMessage);
+        return mockHttpOutputMessage.getBodyAsString();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first thing to look at is this <code>@Before</code>-annotated <code>setup</code> method. The first thing the <code>setup</code> method does is instantiate a  <code>MockMvc</code>  which requires a reference to the applicaton&#8217;s <code>WebApplicationContext</code>. The <code>MockMvc</code> is the center piece: all tests will invariably go through the <code>MockMvc</code> type to mock HTTP requests against the service. And&#8230;&#8203; that&#8217;s it! Look at any of the various tests. We can use the static imports on <code>org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*</code> to chain together HTTP requests and verify the responses.</p>
+</div>
+<div class="paragraph">
+<p>All tests specify a <code>application/json</code> <code>content-type</code> and expect responses of that <code>content-type</code>, as well. The tests use the <code>MockMvcResultMatchers#jsonPath</code> method to validate the structure and contents of the JSON responses. This, in turn, uses the Jayway JSON Path API to run X-Path-style traversals on JSON structures, as we do in various places in the unit tests.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_a_hateoas_rest_service">Building a HATEOAS REST Service</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first cut of the API works very well. If this service were well documented, it would be workable for REST clients in many different languages. It is a clean API, in that it takes advantage of some of the primitives that HTTP provides, in a well-understood way. One measure of an API is by its compliance with  the <a href="http://en.wikipedia.org/wiki/Representational_state_transfer#Uniform_interface">uniform interface principle</a>. HTTP REST APIs like the one we have so far stack up pretty well. Each message includes enough information to describe how to process the message. For example, a client might  decide which parser to invoke based on  the <code>Content-Type</code> header in the request message. The state in the system is mapped into uniquely identifying resource URIs. State is addressable. Mutations in state are done through known HTTP verbs (<code>POST</code>, <code>GET</code>, <code>DELETE</code>, <code>PUT</code>, etc.). Thus, when a client holds a representation of a resource, including any metadata attached, it has enough information to modify or delete the resource.</p>
+</div>
+<div class="paragraph">
+<p>But, we can do better. The services as they stand are adequate to the task but lack.. <strong>staying power</strong>. As Wikipedia says: Clients must know the API a priori. Changes in the API break clients and they <strong>break</strong> the documentation about the service.  Hypermedia as the engine of application state (a.k.a. <a href="http://en.wikipedia.org/wiki/HATEOAS"><strong>HATEOAS</strong></a>) is one more constraint that addresses and removes this coupling.  Clients make state transitions only through actions that are dynamically identified within hypermedia by the server (e.g., by hyperlinks within hypertext). Except for simple fixed entry points to the application, a client does not assume that any particular action is available for any particular resources beyond those described in representations previously received from the server.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s look at a revised cut of this API (in <code>/hateoas/src/main/java/bookmarks/Application.java</code>), this time embracing  HATEOAS with <a href="http://spring.io/projects/spring-hateoas">Spring HATEOAS</a>.  It is a slight simplification to say that Spring HATEOAS makes it easy to provide links - metadata about payloads being returned to the client - but that is how we will approach it. Fundamentally, all we will do is <strong>wrap</strong> our response payloads using Spring HATEOAS' <code>ResourceSupport</code> type. <code>ResourceSupport</code> accumulates <code>Link</code> objects which in turn describe useful, related resources. For example, a resource describing an account in an e-commerce solution could have a link to the resource for that account&#8217;s orders, a link to that account&#8217;s current shopping cart, and a link that can be used to retrieve that resources state again.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.VndErrors;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    @Bean
+    CommandLineRunner init(AccountRepository accountRepository, BookmarkRepository bookmarkRepository) {
+        return (evt) -&gt;
+                Arrays.asList("jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack,jlong".split(","))
+                        .forEach(a -&gt; {
+                            Account account = accountRepository.save(new Account(a, "password"));
+                            bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/1/" + a, "A description"));
+                            bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/2/" + a, "A description"));
+                        });
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+class BookmarkResource extends ResourceSupport {
+
+    private final Bookmark bookmark;
+
+    public BookmarkResource(Bookmark bookmark) {
+        String username = bookmark.getAccount().getUsername();
+        this.bookmark = bookmark;
+        this.add(new Link(bookmark.getUri(), "bookmark-uri"));
+        this.add(linkTo(BookmarkRestController.class, username).withRel("bookmarks"));
+        this.add(linkTo(methodOn(BookmarkRestController.class, username).readBookmark(username, bookmark.getId())).withSelfRel());
+    }
+
+    public Bookmark getBookmark() {
+        return bookmark;
+    }
+}
+
+@RestController
+@RequestMapping("/{userId}/bookmarks")
+class BookmarkRestController {
+
+    private final BookmarkRepository bookmarkRepository;
+
+    private final AccountRepository accountRepository;
+
+    @RequestMapping(method = RequestMethod.POST)
+    ResponseEntity&lt;?&gt; add(@PathVariable String userId, @RequestBody Bookmark input) {
+
+        this.validateUser(userId);
+
+        return accountRepository.findByUsername(userId)
+                .map(account -&gt; {
+                            Bookmark bookmark = bookmarkRepository.save(new Bookmark(account, input.uri, input.description));
+
+                            HttpHeaders httpHeaders = new HttpHeaders();
+
+                            Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
+                            httpHeaders.setLocation(URI.create(forOneBookmark.getHref()));
+
+                            return new ResponseEntity&lt;&gt;(null, httpHeaders, HttpStatus.CREATED);
+                        }
+                ).get();
+    }
+
+    @RequestMapping(value = "/{bookmarkId}", method = RequestMethod.GET)
+    BookmarkResource readBookmark(@PathVariable String userId, @PathVariable Long bookmarkId) {
+        this.validateUser(userId);
+        return new BookmarkResource(this.bookmarkRepository.findOne(bookmarkId));
+    }
+
+
+    @RequestMapping(method = RequestMethod.GET)
+    Resources&lt;BookmarkResource&gt; readBookmarks(@PathVariable String userId) {
+
+        this.validateUser(userId);
+
+        List&lt;BookmarkResource&gt; bookmarkResourceList = bookmarkRepository.findByAccountUsername(userId)
+                .stream()
+                .map(BookmarkResource::new)
+                .collect(Collectors.toList());
+        return new Resources&lt;BookmarkResource&gt;(bookmarkResourceList);
+    }
+
+    @Autowired
+    BookmarkRestController(BookmarkRepository bookmarkRepository,
+                           AccountRepository accountRepository) {
+        this.bookmarkRepository = bookmarkRepository;
+        this.accountRepository = accountRepository;
+    }
+
+    private void validateUser(String userId) {
+        this.accountRepository.findByUsername(userId)
+                .orElseThrow(() -&gt; new UserNotFoundException(userId));
+    }
+}
+
+@ControllerAdvice
+class BookmarkControllerAdvice {
+
+    @ResponseBody
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    VndErrors userNotFoundExceptionHandler(UserNotFoundException ex) {
+        return new VndErrors("error", ex.getMessage());
+    }
+}
+
+
+class UserNotFoundException extends RuntimeException {
+
+    public UserNotFoundException(String userId) {
+        super("could not find user '" + userId + "'.");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These <code>Link</code> s, by the way, are of the same sort as the  <code>&lt;link/&gt;</code> element so often used in HTML pages to import CSS stylesheets. They have an <code>href</code> attribute and a <code>rel</code> attribute. The <code>href</code> attribute points to where the CSS stylesheet lives, and the <code>rel</code> tells the client (the browser) <strong>why</strong> this resource is important (because it&#8217;s a stylesheet to be used in rendering the page). It&#8217;s not hard to translate a <code>link</code> element into JSON, either.</p>
+</div>
+<div class="paragraph">
+<p>The <code>BookmarkResource</code> type <strong>wraps</strong> a <code>Bookmark</code> and provides a nice, centralized place to keep link-building logic.
+At a minimum, a resource should provide a link to itself (usually a link whose <code>rel</code> value is <code>self</code>). We could simply write out <a href="http://127.0.0.1:8080/{userId}/bookmarks/{id}"><code>http://127.0.0.1:8080/{userId}/bookmarks/{id}</code></a> (substituing the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the <code>ServletUriComponentsBuilder</code> to simplify some of this work. But why should we? After all, Spring MVC  <em>already knows</em> about this URI. It&#8217;s <strong>in</strong> the <code>@RequestMapping</code> information on every controller method! Spring HATEOAS provides the convenient static <code>ControllerLinkBuilder.linkTo</code> and <code>ControllerLinkBuilder.methodOn</code> methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a <code>Link</code> object directly, specifying an arbitrary value for <code>href</code> (in this case, the URI for the bookmark itself), how to build a link based on the <code>@RequestMapping</code> metadata on a Spring MVC controller, and how to build a link based on the <code>@RequestMapping</code> metadata on a specific Spring MVC controller method.</p>
+</div>
+<div class="paragraph">
+<p>With this in place, the only remaining changes substitute  <code>Bookmark</code> types for <code>BookmarkResource</code> types.</p>
+</div>
+<div class="sect2">
+<h3 id="_improved_error_handling_with_code_vnderrors_code">Improved Error Handling with <code>VndErrors</code></h3>
+<div class="paragraph">
+<p>HATEOAS gives clients  improved metadata about the service itself. We can improve the situation for our error handling, as well. HTTP status codes tell the client - broadly - that something went wrong. HTTP status codes from 400-499, for example, tell the client that the client did something wrong. HTTP status codes from 500-599 tell the client that the server did something wrong. If you know your status codes, then this can be a <em>start</em> in understanding how to work with the API. But, we can do better. After all, before a REST client is up and running, <em>somebody</em> needs to develop it, and useful error messages can be invaluable in understanding an API. Errors that can be handled in a consistent way are even better!</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/blongden/vnd.error"><code>VndError</code></a> is a popular, de-facto standard mime-type that describes the encoding of errors to the client of a REST service. It works well with errors in the 40x and 50x range of errors. Spring HATEOAS provides <code>VndError</code> types that you can use to report errors back to your client.</p>
+</div>
+<div class="paragraph">
+<p>Our revised service introduces a new class, <code>BookmarkControllerAdvice</code>, that uses Spring MVC&#8217;s <code>@ControllerAdvice</code> annotation. <code>@ControllerAdvice</code> are a useful way to extricate the configuration of common concerns - like error handling - into a separate place, away from any individual Spring MVC controller. Spring MVC, for example, defines the <code>@ExceptionHandler</code> method that ties a specific handler method to any incident of an <code>Exception</code> or a HTTP status code. Here, we&#8217;re telling Spring MVC that any code that throws a <code>UserNotFoundException</code>, as before, should eventually be handled by the <code>userNotFoundExceptionHandler</code> method. This method simply wraps the propagated <code>Exception</code> in a <code>VndErrors</code> and returns it to the client. In this example, we&#8217;ve removed the <code>@ResponseStatus</code> annoation from the exceptio itself and centralized it in the <code>@ControllerAdvice</code> type.  <code>@ControllerAdvice</code> types are a convenient way to centralize all sorts of logic, and - unlike annotating exception types - can be used even for exception types to which you don&#8217;t have the source code.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_securing_a_rest_service">Securing a REST Service</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Thus far we&#8217;ve proceeded from the assumption that all clients are trustworthy, and that they should have unmitigated access to all the data. This is rarely actually the case. An open REST API is an insecure one. It&#8217;s not hard to fix that, though. <a href="http://spring.io/projects/spring-security">Spring Security</a> provides primitives for securing application access. Fundamentally, Spring Security needs to have some idea of your application&#8217;s users and their privileges. These privileges, or <strong>authorities</strong>, answer the question: what may an application user see,  or do?</p>
+</div>
+<div class="paragraph">
+<p>At the heart of Spring Security is the <code>UserDetailsService</code> interface, which has <strong>one job</strong>: given a username, produce a <code>UserDetails</code> implementation,  <code>UserDetails</code> implementations must be able to answer questions about an account&#8217;s validity, its password, its username, and its authorities (represented by instances of type <code>org.springframework.security.core.GrantedAuthority</code>).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package org.springframework.security.core.userdetails;
+
+public interface UserDetailsService {
+
+    org.springframework.security.core.userdetails.UserDetails loadUserByUsername(java.lang.String s)
+        throws org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Spring Security provides many implementations of this contract that adapt  existing identity providers, like Active Directory, LDAP, <code>pam</code>, CAAS, etc. <a href="http://spring.io/projects/spring-social">Spring Social</a> even provides a nice integration that delegates to    different OAuth-based services like Facebook, Twitter, etc., for authentication.</p>
+</div>
+<div class="paragraph">
+<p>Our example already has a notion of an <code>Account</code>, so we can simply adapt that by providing our own <code>UserDetailsService</code> implementation, as shown below in the <code>WebSecurityConfiguration</code> <code>@Configuration</code>-class . Spring Security will ask this <code>UserDetailsService</code>  if it has any questions about an authentication request.</p>
+</div>
+<div class="sect2">
+<h3 id="_client_authentication_and_authorization_on_the_open_web_with_spring_security_oauth">Client Authentication and Authorization on the Open Web with Spring Security  OAuth</h3>
+<div class="paragraph">
+<p>We can authenticate client requests in a myriad of ways. Clients could send, for example, an HTTP-basic username  and password on each request. They could transmit an x509 certificate on each request. There are indeed numerous approaches that could be used here, with numerous tradeoffs.</p>
+</div>
+<div class="paragraph">
+<p>Our API is meant to be consumed over the open-web. It&#8217;s meant to be used by all manner of HTML5 and native mobile and desktop clients that we intend to build. We shall use  diverse clients with diverse security capabilities, and any solution we pick should be able to accomodate that. We should also decouple the user&#8217;s username and password from the application&#8217;s session. After all, if I reset my Twitter password, I don&#8217;t want to be forced to re-authenticate every client signed in. On the other hand, if someone <strong>does</strong> hijack one of our clients (perhaps a user has lost a  phone), we don&#8217;t want the party that stole the device to be able to lock our users out of their accounts.</p>
+</div>
+<div class="paragraph">
+<p><a href="http://oauth.net">OAuth</a> provides a clean way to handle these concerns.  You&#8217;ve no doubt used OAuth already. One common case is when installing a Facebook plugin or game. Typically the flow looks like this:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>user finds a game or piece of functionality on the web that requires access to a user&#8217;s Facebook data in order to function. One common example is "Sign in With Facebook"-style scenarios.</p>
+</li>
+<li>
+<p>a user clicks "install," or "add," and is then redirected to a trusted domain (for example: Facebook.com) where the user is prompted to grant certain permissions (like "Post to wall," or "Read Basic information")</p>
+</li>
+<li>
+<p>the user confirms these permissions and is subsequently redirected back to the source application where the source application now has an access token. It will use this access token to make requests  to Facebook on your behalf.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this example, any old client can talk to Facebook and the client has, at the end of the process, an access token. This access token is transmitted via all subsequent REST requests, sort of like an HTTP cookie. The username and password need not be retransmitted and the client may cache the access token for a finite or infinite period. Users of the client need not re-authenticate every time they open an application, for example. Even better: access tokens are specific to each client. They may be used to signal that one client needs more permissoins than others.  In the flow above, requests always ended up at Facebook.com where - if the user is not already signed into Facebook, he or she will be pompted to login and then assign permissions to the client. This has the benefit of ensuring that any sensitive information, like a username and password, is never entered in the wild in untrusted applications that might maliciously try to capture that username and password. Our application, will not be available to any old client. We can be sure that any client we deploy is <strong>friendly</strong>, as it will be one of <strong>our</strong> clients. OAuth supports a simpler flow whereby a user authenticates (typically by sending a username and password) from the client and the service returns an OAuth access token directly, sidestepping the need for a redirect to a trusted domain. This is the approach we will take: the reuslt will be that our clients will have an access token that&#8217;s decoupled from the user&#8217;s username and password, and the access token can be used to confer different levels of security on different clients.</p>
+</div>
+<div class="paragraph">
+<p>Setting up OAuth security for our application is easy.  The <code>OAuth2Configuration</code> configuration class describes one client (here, one for a hypothetical Android client) that needs the <code>ROLE_USER</code> and the <code>write</code> scope.  Spring Security OAuth will read this information from the <code>AuthenticationManager</code> that is ultimately configured using our custom <code>UserDetailsService</code> implementation.</p>
+</div>
+<div class="paragraph">
+<p>OAuth is very flexible. You could, for example, deploy an authorization server that&#8217;s share by many REST APIs. In this case, our OAuth implementation lives adjacent to our bookmarks REST API. They are one and the same. This is why we&#8217;ve used both <code>@EnableResourceServer</code> and <code>@EnableAuthorizationServer</code> in the same configuration class.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_you_said_something_about_the_open_web">You Said Something about the Open Web?</h3>
+<div class="paragraph">
+<p>We expect that some of the clients to our service will be HTML5-based. They will want to talk to our REST API from different domains, and in most browsers this runs afoul of cross-site-scripting security measures. We can explicitly enable XSS for well-known clients by exposing CORS (cross-origin request scripting) headers. These headers, when present in the service responses, signal to the browser that requests of the origin, shape and configuration described in the headers <strong>are</strong> permitted, even across domains. Our API is decorated with a simple <code>javax.servlet.Filter</code> that adds these headers on every request. In the example, we&#8217;re delegating to a property - <code>tagit.origin</code> - if provided or a default of <code><a href="http://localhost:9000" class="bare">http://localhost:9000</a></code> where we might have, for example, a JavaScript client making requests to the service. We could just as easily read this information from a datastore which we can change without recompiling the code. We&#8217;ve only specified a single origin here, but we could just as easily specified numerous clients.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_https_ssl_tls_to_prevent_man_in_the_middle_attacks">Using HTTPS (SSL/TLS) to prevent Man-in-the-Middle Attacks</h3>
+<div class="paragraph">
+<p>Spring Boot provides an embedded web server (Apache Tomcat, by default) that can be configured programmatically to do anything that the standalone Apache Tomcat webserver can do.  To configure HTTPS (SSL/TLS), you need only register a <code>org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer</code> bean. Our bean simply wires up the Apache Tomcat connector to support HTTPS (SSL or TLS-encrypted) traffic. HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. Note that, to support ease of configuration, this bean&#8217;s only available using the Spring profile named <code>https</code>: this means that you can run and test the application <strong>without</strong> the profile applied or switch it on just as easily.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_putting_it_all_together">Putting it All Together</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="prettyprint highlight"><code class="language-java" data-lang="java">package bookmarks;
+
+import org.apache.coyote.http11.Http11NioProtocol;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.VndErrors;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URI;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+//
+// curl -X POST -vu android-bookmarks:123456 http://localhost:8080/oauth/token -H "Accept: application/json" -d "password=password&amp;username=jlong&amp;grant_type=password&amp;scope=write&amp;client_secret=123456&amp;client_id=android-bookmarks"
+// curl -v POST http://127.0.0.1:8080/tags --data "tags=cows,dogs"  -H "Authorization: Bearer 66953496-fc5b-44d0-9210-b0521863ffcb"
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    // CORS
+    @Bean
+    FilterRegistrationBean corsFilter(@Value("${tagit.origin:http://localhost:9000}") String origin) {
+        return new FilterRegistrationBean(new Filter() {
+            public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+                    throws IOException, ServletException {
+                HttpServletRequest request = (HttpServletRequest) req;
+                HttpServletResponse response = (HttpServletResponse) res;
+                String method = request.getMethod();
+                // this origin value could just as easily have come from a database
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                response.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE");
+                response.setHeader("Access-Control-Max-Age", Long.toString(60 * 60));
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
+                if ("OPTIONS".equals(method)) {
+                    response.setStatus(HttpStatus.OK.value());
+                } else {
+                    chain.doFilter(req, res);
+                }
+            }
+
+            public void init(FilterConfig filterConfig) {
+            }
+
+            public void destroy() {
+            }
+        });
+    }
+
+    // expose HTTPS
+    @Profile("https")
+    @Bean
+    EmbeddedServletContainerCustomizer https(@Value("${keystore.file}") Resource keystoreFile,
+                                             @Value("${keystore.pass}") String keystorePass) throws Exception {
+
+        String absoluteKeystoreFile = keystoreFile.getFile().getAbsolutePath();
+        return (ConfigurableEmbeddedServletContainer container) -&gt; {
+            if (container instanceof TomcatEmbeddedServletContainerFactory) {
+                TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
+                tomcat.addConnectorCustomizers(
+                        (connector) -&gt; {
+                            connector.setPort(8443);
+                            connector.setSecure(true);
+                            connector.setScheme("https");
+                            Http11NioProtocol proto = (Http11NioProtocol) connector.getProtocolHandler();
+                            proto.setSSLEnabled(true);
+                            proto.setKeystoreFile(absoluteKeystoreFile);
+                            proto.setKeystorePass(keystorePass);
+                            proto.setKeystoreType("PKCS12");
+                            proto.setKeyAlias("tomcat");
+                        }
+                );
+            }
+        };
+    }
+
+    @Bean
+    CommandLineRunner init(AccountRepository accountRepository, BookmarkRepository bookmarkRepository) {
+        return (evt) -&gt;
+                Arrays.asList("jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack,jlong".split(",")).forEach(a -&gt; {
+                    Account account = accountRepository.save(new Account(a, "password"));
+                    bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/1/" + a, "A description"));
+                    bookmarkRepository.save(new Bookmark(account, "http://bookmark.com/2/" + a, "A description"));
+                });
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+
+@Configuration
+class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
+
+    @Autowired
+    AccountRepository accountRepository;
+
+    @Override
+    public void init(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService());
+    }
+
+    @Bean
+    UserDetailsService userDetailsService() {
+        return (username) -&gt;
+                accountRepository.findByUsername(username)
+                        .map(a -&gt; new User(a.username, a.password, true, true, true, true, AuthorityUtils.createAuthorityList("USER", "write")))
+                        .orElseThrow(() -&gt; new UsernameNotFoundException("could not find the user '" + username + "'"));
+    }
+}
+
+
+@Configuration
+@EnableResourceServer
+@EnableAuthorizationServer
+class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
+
+    String applicationName = "bookmarks";
+
+    // This is required for password grants, which we specify below as one of the  {@literal authorizedGrantTypes()}.
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints.authenticationManager(authenticationManager);
+    }
+
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+
+        clients.inMemory()
+                .withClient("android-" + applicationName)
+                .authorizedGrantTypes("password", "authorization_code", "refresh_token")
+                .authorities("ROLE_USER")
+                .scopes("write")
+                .resourceIds(applicationName)
+                .secret("123456");
+    }
+}
+
+
+class BookmarkResource extends ResourceSupport {
+
+    private final Bookmark bookmark;
+
+    public BookmarkResource(Bookmark bookmark) {
+        String username = bookmark.getAccount().getUsername();
+        this.bookmark = bookmark;
+        this.add(new Link(bookmark.uri, "bookmark-uri"));
+        this.add(linkTo(BookmarkRestController.class, username).withRel("bookmarks"));
+        this.add(linkTo(methodOn(BookmarkRestController.class, username).readBookmark(null, bookmark.getId())).withSelfRel());
+    }
+
+    public Bookmark getBookmark() {
+        return bookmark;
+    }
+}
+
+@RestController
+@RequestMapping("/bookmarks")
+class BookmarkRestController {
+
+    private final BookmarkRepository bookmarkRepository;
+
+    private final AccountRepository accountRepository;
+
+    @RequestMapping(method = RequestMethod.POST)
+    ResponseEntity&lt;?&gt; add(Principal principal, @RequestBody Bookmark input) {
+        String userId = principal.getName();
+        this.validateUser(userId);
+
+        return accountRepository.findByUsername(userId)
+                .map(account -&gt; {
+                            Bookmark bookmark = bookmarkRepository.save(new Bookmark(account, input.uri, input.description));
+
+                            HttpHeaders httpHeaders = new HttpHeaders();
+
+                            Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
+                            httpHeaders.setLocation(URI.create(forOneBookmark.getHref()));
+
+                            return new ResponseEntity&lt;&gt;(null, httpHeaders, HttpStatus.CREATED);
+                        }
+                ).get();
+    }
+
+    @RequestMapping(value = "/{bookmarkId}", method = RequestMethod.GET)
+    BookmarkResource readBookmark(Principal principal, @PathVariable Long bookmarkId) {
+        String userId = principal.getName();
+        this.validateUser(userId);
+        return new BookmarkResource(this.bookmarkRepository.findOne(bookmarkId));
+    }
+
+
+    @RequestMapping(method = RequestMethod.GET)
+    Resources&lt;BookmarkResource&gt; readBookmarks(Principal principal) {
+        String userId = principal.getName();
+        this.validateUser(userId);
+
+        List&lt;BookmarkResource&gt; bookmarkResourceList = bookmarkRepository.findByAccountUsername(userId)
+                .stream()
+                .map(BookmarkResource::new)
+                .collect(Collectors.toList());
+        return new Resources&lt;BookmarkResource&gt;(bookmarkResourceList);
+    }
+
+    @Autowired
+    BookmarkRestController(BookmarkRepository bookmarkRepository,
+                           AccountRepository accountRepository) {
+        this.bookmarkRepository = bookmarkRepository;
+        this.accountRepository = accountRepository;
+    }
+
+    private void validateUser(String userId) {
+        this.accountRepository.findByUsername(userId)
+                .orElseThrow(() -&gt; new UserNotFoundException(userId));
+    }
+}
+
+@ControllerAdvice
+class BookmarkControllerAdvice {
+
+    @ResponseBody
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    VndErrors userNotFoundExceptionHandler(UserNotFoundException ex) {
+        return new VndErrors("error", ex.getMessage());
+    }
+}
+
+
+class UserNotFoundException extends RuntimeException {
+
+    public UserNotFoundException(String userId) {
+        super("could not find user '" + userId + "'.");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With Spring Security OAuth in place, we can rework our API a little bit. It makes little sense to have <code>userId</code> s strewn throughout the URIs for our API. After all, the user context is <em>implied</em> in the secure access of our endpoints. Instead of requiring a <code>userId</code> in the path, the secure Spring MVC handler methods expect a <code>javax.security.Principal</code> that Spring Security injects on our behalf. This principal offers a <code>javax.security.Principal#getName</code> method that can be used in place of the <code>userId</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion">Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>REST is the most natural way for ubiquitous, disparate clients to communicate. It works because HTTP works. Once you understand how REST fits into an application, it&#8217;s not hard to envision an architecture with numerous, singly focused APIs all exposed over REST, load-balanced as any other HTTP service would be. It is not surprising, then, that REST (often, but not necessarily) forms a criticial foundation for <em>microservices</em>, which we&#8217;ll look at in more depth in an upcoming tutorial.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2014-09-28 21:32:47 PDT
+</div>
+</div>
+</body>
+</html>

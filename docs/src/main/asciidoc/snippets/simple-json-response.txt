@@ -1,0 +1,5 @@
+ 	{
+		id: 6,
+		uri: "http://bookmark.com/2/bob",
+		description: "A description"
+	}

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>bookmarks</groupId>
+        <artifactId>bookmarks</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>docs</artifactId>
+
+    <properties>
+        <main.basedir>${basedir}/..</main.basedir>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>full</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctor-maven-plugin</artifactId>
+                        <version>0.1.4</version>
+                        <executions>
+                            <execution>
+                                <id>generate-docbook</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceDocumentName>index.adoc</sourceDocumentName>
+                                    <backend>docbook5</backend>
+                                    <doctype>book</doctype>
+                                    <attributes>
+                                        <docinfo>true</docinfo>
+                                        <spring-boot-version>${project.version}</spring-boot-version>
+                                        <spring-boot-docs-version>${project.version}</spring-boot-docs-version>
+                                    </attributes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.agilejava.docbkx</groupId>
+                        <artifactId>docbkx-maven-plugin</artifactId>
+                        <version>2.0.15</version>
+                        <configuration>
+                            <sourceDirectory>${basedir}/target/generated-docs</sourceDirectory>
+                            <includes>index.xml</includes>
+                            <xincludeSupported>true</xincludeSupported>
+                            <chunkedOutput>false</chunkedOutput>
+                            <foCustomization>${basedir}/src/main/docbook/xsl/pdf.xsl</foCustomization>
+                            <useExtensions>1</useExtensions>
+                            <highlightSource>1</highlightSource>
+                            <highlightXslthlConfig>${basedir}/src/main/docbook/xsl/xslthl-config.xml
+                            </highlightXslthlConfig>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>net.sf.xslthl</groupId>
+                                <artifactId>xslthl</artifactId>
+                                <version>2.1.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>net.sf.docbook</groupId>
+                                <artifactId>docbook-xml</artifactId>
+                                <version>5.0-all</version>
+                                <classifier>resources</classifier>
+                                <type>zip</type>
+                                <scope>runtime</scope>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>html-single</id>
+                                <goals>
+                                    <goal>generate-html</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <htmlCustomization>${basedir}/src/main/docbook/xsl/html-singlepage.xsl
+                                    </htmlCustomization>
+                                    <targetDirectory>${basedir}/target/docbook/htmlsingle</targetDirectory>
+                                    <postProcess>
+                                        <copy todir="${basedir}/target/contents/reference/htmlsingle">
+                                            <fileset dir="${basedir}/target/docbook/htmlsingle">
+                                                <include name="**/*.html"/>
+                                            </fileset>
+                                        </copy>
+                                        <copy todir="${basedir}/target/contents/reference/htmlsingle">
+                                            <fileset dir="${basedir}/src/main/docbook">
+                                                <include name="**/*.css"/>
+                                                <include name="**/*.png"/>
+                                                <include name="**/*.gif"/>
+                                                <include name="**/*.jpg"/>
+                                            </fileset>
+                                        </copy>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+
+
+                            <execution>
+                                <id>epub</id>
+                                <goals>
+                                    <goal>generate-epub3</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <epub3Customization>${basedir}/src/main/docbook/xsl/epub.xsl</epub3Customization>
+                                    <targetDirectory>${basedir}/target/docbook/epub</targetDirectory>
+                                    <postProcess>
+                                        <copy todir="${basedir}/target/contents/reference/epub">
+                                            <fileset dir="${basedir}/target/docbook">
+                                                <include name="**/*.epub"/>
+                                            </fileset>
+                                        </copy>
+                                        <move file="${basedir}/target/contents/reference/epub/index.epub"
+                                              tofile="${basedir}/target/contents/reference/epub/spring-boot-reference.epub"/>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>html</id>
+                                <goals>
+                                    <goal>generate-html</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <configuration>
+
+                                    <htmlCustomization>${basedir}/src/main/docbook/xsl/html-multipage.xsl
+                                    </htmlCustomization>
+
+                                    <targetDirectory>${basedir}/target/docbook/html</targetDirectory>
+                                    <chunkedOutput>true</chunkedOutput>
+                                    <postProcess>
+                                        <copy todir="${basedir}/target/contents/reference/html">
+                                            <fileset dir="${basedir}/target/docbook/html">
+                                                <include name="**/*.html"/>
+                                            </fileset>
+                                        </copy>
+                                        <copy todir="${basedir}/target/contents/reference/html">
+                                            <fileset dir="${basedir}/src/main/docbook">
+                                                <include name="**/*.css"/>
+                                                <include name="**/*.png"/>
+                                                <include name="**/*.gif"/>
+                                                <include name="**/*.jpg"/>
+                                            </fileset>
+                                        </copy>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+
+                        </executions>
+                    </plugin>
+
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
