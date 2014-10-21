@@ -5,10 +5,6 @@
 :javaee-api-root: http://docs.oracle.com/javaee/7/api/
 :image-width: 500
 :book-root: .
-:rest-application: /rest/src/main/java/bookmarks/Application.java
-:rest-application-test: /rest/src/test/java/bookmarks/BookmarkRestControllerTest.java
-:hateoas-application: /hateoas/src/main/java/bookmarks/Application.java
-:security-application: /security/src/main/java/bookmarks/Application.java
 
 = Building REST Services with Spring
 
@@ -111,13 +107,12 @@ REST does *not* prescribe a representation or encoding. REST, short for *Represe
 We can use HTTP verbs to manipulate the data represented by those URIs. 
 
 *  the HTTP `GET` verb tells the service to *get*, or retreive, the resource designated by a URI. How it does this is, of course, implementation specific. The backend code might talk to a database, a file system, another webservice, etc. The client doesn't need to be aware of this, though. To the client, all resources are HTTP resources, and in the world of HTTP, there's only one way to ask for data: `GET`. `GET` calls have no body in the request, but typically return a body. The response to an HTTP `GET` request for  `/bob/bookmarks/6` might look like:
-
++
 [source,json] 
 ----
 include::{book-root}/snippets/simple-json-response.txt[]
 ----  
-
-	
++	
 * the HTTP `DELETE` verb tells the service to remove the resource designated by a URI. Again, this is implementation specific.   `DELETE` calls have no body.
 * the HTTP `PUT` verb tells the service to update the resource designated by a URI with the body of the enclosed request. Thus, to update the resource at `/bob/bookmarks`, I might send the same JSON representation returned from the `GET` call, with updated fields. The service will *replace* the value.
 * the HTTP `POST` verb tells the service to *do something* with the enclosed body of the request. There's no hard and fast rules here, but typically an HTTP `POST` call to `/bob/bookmarks` will *add*, or *append*, the enclosed body to the collection (database, filesystem, whatever) designated by the `/bob/bookmarks` URI. It can be a little confusing, though. An HTTP `POST` to `/bob/bookmarks/1`, on the other hand, might be treated in the same way as an HTTP `PUT` call; the service could take the enclosed body and use it to *replace* the resource designated by the URI. 
@@ -132,20 +127,15 @@ Of course, sometimes things don't go to plan. Perhaps the browser timed out, or 
 
 ## Building a REST service 
 
+The first cut of a bookmark REST service should at least support reading from, and adding to, an account's bookmarks, as well as reading individual ones. Below is the first cut at our REST service:
 
-
-
-The first cut of a bookmark REST service should at least support reading from, and adding to, an account's bookmarks, as well as reading individual ones. Below is the first cut at our REST service, in `{rest-application}`.
-
-
+`rest/src/main/java/bookmarks/Application.java`
 [source,java] 
 ---- 
-include::{book-root}{rest-application}[]
+include::{book-root}/rest/src/main/java/bookmarks/Application.java[]
 ----   
 
 `BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@RequestMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the   `@RequestMapping` annotation on the method.  
-
-
 
 `@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/{userId}/bookmarks/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb 
  
@@ -176,12 +166,12 @@ All the methods in the REST service call `validateUser` which in turn verifies t
 
 Spring MVC provides great support http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/testing.html#spring-mvc-test-framework[for unit testing HTTP endpoints]. It provides a very nice middle ground between unit-testing and integration-testing in that it lets you stand up the entire Spring MVC `DispatcherServlet`-based machinery - including validators, `HttpMessageConverter` s, and more - and then run tests against them _without_ actually starting up a _real_ HTTP service: the best of both worlds! It's an integration-test in that the logic you care about is actually being exercised, but it's a unit-test in that you're not actually waiting for a web server to initialize and start servicing requests. 
 
-Here's the unit-test for the `ReservationRestController`, in `{rest-application-test}`. This should look familiar to anybody who has written a JUnit unit test before. At the top, we use the `@SpringApplicationConfiguration(classes = Application.class)` annotation (from Spring Boot) to tell the `SpringJUnit4ClassRunner` where it should get information about the Spring application under test. The `@WebAppConfiguration` annotation tells JUnit that this is a unit test for Spring MVC web components and should thus run under a `WebApplicationContext` variety, not a standard `ApplicationContext` implementation.
+Here's the unit-test for the `ReservationRestController` shown below. This should look familiar to anybody who has written a JUnit unit test before. At the top, we use the `@SpringApplicationConfiguration(classes = Application.class)` annotation (from Spring Boot) to tell the `SpringJUnit4ClassRunner` where it should get information about the Spring application under test. The `@WebAppConfiguration` annotation tells JUnit that this is a unit test for Spring MVC web components and should thus run under a `WebApplicationContext` variety, not a standard `ApplicationContext` implementation.
 
-
+`rest/src/test/java/bookmarks/BookmarkRestControllerTest.java`
 [source,java] 
 ---- 
-include::{book-root}{rest-application-test}[]
+include::{book-root}/rest/src/test/java/bookmarks/BookmarkRestControllerTest.java[]
 ----   
  
 The first thing to look at is this `@Before`-annotated `setup` method. The first thing the `setup` method does is instantiate a  `MockMvc`  which requires a reference to the applicaton's `WebApplicationContext`. The `MockMvc` is the center piece: all tests will invariably go through the `MockMvc` type to mock HTTP requests against the service. And... that's it! Look at any of the various tests. We can use the static imports on `org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*` to chain together HTTP requests and verify the responses.  
@@ -201,12 +191,12 @@ The first cut of the API works very well. If this service were well documented, 
 But, we can do better. The services as they stand are adequate to the task but lack.. *staying power*. As Wikipedia says: Clients must know the API a priori. Changes in the API break clients and they *break* the documentation about the service.  Hypermedia as the engine of application state (a.k.a. http://en.wikipedia.org/wiki/HATEOAS[**HATEOAS**]) is one more constraint that addresses and removes this coupling.  Clients make state transitions only through actions that are dynamically identified within hypermedia by the server (e.g., by hyperlinks within hypertext). Except for simple fixed entry points to the application, a client does not assume that any particular action is available for any particular resources beyond those described in representations previously received from the server.  
  
 
-Let's look at a revised cut of this API (in `{hateoas-application}`), this time embracing  HATEOAS with http://spring.io/projects/spring-hateoas[Spring HATEOAS].  It is a slight simplification to say that Spring HATEOAS makes it easy to provide links - metadata about payloads being returned to the client - but that is how we will approach it. Fundamentally, all we will do is *wrap* our response payloads using Spring HATEOAS' `ResourceSupport` type. `ResourceSupport` accumulates `Link` objects which in turn describe useful, related resources. For example, a resource describing an account in an e-commerce solution could have a link to the resource for that account's orders, a link to that account's current shopping cart, and a link that can be used to retrieve that resources state again. 
+Let's look at a revised cut of this API (shown below), this time embracing  HATEOAS with http://spring.io/projects/spring-hateoas[Spring HATEOAS].  It is a slight simplification to say that Spring HATEOAS makes it easy to provide links - metadata about payloads being returned to the client - but that is how we will approach it. Fundamentally, all we will do is *wrap* our response payloads using Spring HATEOAS' `ResourceSupport` type. `ResourceSupport` accumulates `Link` objects which in turn describe useful, related resources. For example, a resource describing an account in an e-commerce solution could have a link to the resource for that account's orders, a link to that account's current shopping cart, and a link that can be used to retrieve that resources state again. 
 
-
+`hateoas/src/main/java/bookmarks/Application.java`
 [source,java] 
 ---- 
-include::{book-root}{hateoas-application}[]
+include::{book-root}/hateoas/src/main/java/bookmarks/Application.java[]
 ----   
 
 These `Link` s, by the way, are of the same sort as the  `<link/>` element so often used in HTML pages to import CSS stylesheets. They have an `href` attribute and a `rel` attribute. The `href` attribute points to where the CSS stylesheet lives, and the `rel` tells the client (the browser) *why* this resource is important (because it's a stylesheet to be used in rendering the page). It's not hard to translate a `link` element into JSON, either.
@@ -269,9 +259,10 @@ Spring Boot provides an embedded web server (Apache Tomcat, by default) that can
 
 ### Putting it All Together 
 
+`security/src/main/java/bookmarks/Application.java`
 [source,java] 
 ---- 
-include::{book-root}{security-application}[]
+include::{book-root}/security/src/main/java/bookmarks/Application.java[]
 ----   
 
 With Spring Security OAuth in place, we can rework our API a little bit. It makes little sense to have `userId` s strewn throughout the URIs for our API. After all, the user context is _implied_ in the secure access of our endpoints. Instead of requiring a `userId` in the path, the secure Spring MVC handler methods expect a `javax.security.Principal` that Spring Security injects on our behalf. This principal offers a `javax.security.Principal#getName` method that can be used in place of the `userId`. 
