@@ -88,7 +88,7 @@ Our application will use Spring Boot. A Spring Boot application is, at a minimum
 
 [source,java] 
 ----
-include::{book-root}/docs/src/main/asciidoc/snippets/basic-application.txt[]
+include::{book-root}/snippets/basic-application.txt[]
 ----  
 
 
@@ -107,7 +107,7 @@ We can use HTTP verbs to manipulate the data represented by those URIs.
 
 [source,json] 
 ----
-include::{book-root}/docs/src/main/asciidoc/snippets/simple-json-response.txt[]
+include::{book-root}/snippets/simple-json-response.txt[]
 ----  
 
 	
@@ -229,7 +229,7 @@ At the heart of Spring Security is the `UserDetailsService` interface, which has
 
 [source,java] 
 ---- 
-include::{book-root}/docs/src/main/asciidoc/snippets/user-details-service.txt[]
+include::{book-root}/snippets/user-details-service.txt[]
 ----   
 
 Spring Security provides many implementations of this contract that adapt  existing identity providers, like Active Directory, LDAP, `pam`, CAAS, etc. http://spring.io/projects/spring-social[Spring Social] even provides a nice integration that delegates to    different OAuth-based services like Facebook, Twitter, etc., for authentication.  
