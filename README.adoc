@@ -2,7 +2,7 @@
 
 :javaee-api-root: http://docs.oracle.com/javaee/7/api/
 :image-width: 500
-:book-root: ../../../..
+:book-root: .
 :rest-application: /rest/src/main/java/bookmarks/Application.java
 :rest-application-test: /rest/src/test/java/bookmarks/BookmarkRestControllerTest.java
 :hateoas-application: /hateoas/src/main/java/bookmarks/Application.java
