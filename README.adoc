@@ -44,7 +44,7 @@ Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans,
 video::p8AdyMlpmPk[youtube]
 
 ## The Story so Far...
-All of our examples will be based on Spring Boot. We'll reprint the same setup code for each example. Our example models a simple bookmark service, à la Instapaper or other cloud-based bookmarking services. Our bookmark service simply collects a URI, and a description. All bookmarks belong to a user account. This relationship is modeled using JPA and Spring Data JPA repositories in [the `model` module](https://github.com/joshlong/bookmarks/tree/tutorial/model/).
+All of our examples will be based on Spring Boot. We'll reprint the same setup code for each example. Our example models a simple bookmark service, à la Instapaper or other cloud-based bookmarking services. Our bookmark service simply collects a URI, and a description. All bookmarks belong to a user account. This relationship is modeled using JPA and Spring Data JPA repositories in https://github.com/joshlong/bookmarks/tree/tutorial/model/[the `model` module].
 
 We won't dive too much into the code. We're using two JPA entities to  model the records as they'll live in a database. We're using a standard SQL database to store our records so that the domain is as immediately useful to as large an audience as possible.
 
