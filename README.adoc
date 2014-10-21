@@ -48,17 +48,19 @@ All of our examples will be based on Spring Boot. We'll reprint the same setup c
 
 We won't dive too much into the code. We're using two JPA entities to  model the records as they'll live in a database. We're using a standard SQL database to store our records so that the domain is as immediately useful to as large an audience as possible.
 
-The first class models our user account. Aptly, with a JPA entity called `Account`, in `model/src/main/java/bookmarks/Account.java`:
+The first class models our user account. Aptly, with a JPA entity called `Account`.
 
+NOTE: Amazingly, the following class is one of the _noisiest_ - mostly because of the Java language's verbosity. 
 
-.Amazingly, this class is one of the _noisiest_ - mostly because of the Java language's verbosity. 
+`model/src/main/java/bookmarks/Account.java`
 [source,java] 
 ----
 include::{book-root}/model/src/main/java/bookmarks/Account.java[]
 ----
 
-Each `Account` may have no, one, or many `Bookmark` entities. This is a 1:N relationship. The code for the `Bookmark` entity is shown in `model/src/main/java/bookmarks/Bookmark.java`:
+Each `Account` may have no, one, or many `Bookmark` entities. This is a 1:N relationship. The code for the `Bookmark` entity is shown below:
 
+`model/src/main/java/bookmarks/Bookmark.java`
 [source,java] 
 ----
 include::{book-root}/model/src/main/java/bookmarks/Bookmark.java[]
@@ -66,8 +68,9 @@ include::{book-root}/model/src/main/java/bookmarks/Bookmark.java[]
 
 We'll use http://spring.io/guides/gs/accessing-data-jpa/[two Spring Data JPA repositories] to handle the tedious database interactions. Spring Data repositories are typically interfaces with methods supporting reading, updating, deleting, and creating records against a backend data store. Some  repositories also typically support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface. There are multiple repository implementations besides the JPA ones. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc. 
 
-One repository will manage our `Account` entities, called `AccountRepository`, shown in  `model/src/main/java/bookmarks/AccountRepository.java`. One custom finder-method, `findByUsername`, will, _basically_, create a JPA query of the form `select a from Account a where a.username = :username`, run it (passing in the method argument `username` as a named parameter for the query), and return the results for us. Convenient!
+One repository will manage our `Account` entities, called `AccountRepository`, shown below. One custom finder-method, `findByUsername`, will, _basically_, create a JPA query of the form `select a from Account a where a.username = :username`, run it (passing in the method argument `username` as a named parameter for the query), and return the results for us. Convenient!
 
+`model/src/main/java/bookmarks/AccountRepository.java`
 [source,java] 
 ----
 include::{book-root}/model/src/main/java/bookmarks/AccountRepository.java[]
@@ -75,7 +78,7 @@ include::{book-root}/model/src/main/java/bookmarks/AccountRepository.java[]
 
 Here's the repository for working with `Bookmark` entities.
 
-
+`model/src/main/java/bookmarks/BookmarkRepository.java`
 [source,java] 
 ----
 include::{book-root}/model/src/main/java/bookmarks/BookmarkRepository.java[]
@@ -111,8 +114,8 @@ include::{book-root}/snippets/simple-json-response.txt[]
 ----  
 
 	
-*  the HTTP `DELETE` verb tells the service to remove the resource designated by a URI. Again, this is implementation specific.   `DELETE` calls have no body.
-*  the HTTP `PUT` verb tells the service to update the resource designated by a URI with the body of the enclosed request. Thus, to update the resource at `/bob/bookmarks`, I might send the same JSON representation returned from the `GET` call, with updated fields. The service will *replace* the value.
+* the HTTP `DELETE` verb tells the service to remove the resource designated by a URI. Again, this is implementation specific.   `DELETE` calls have no body.
+* the HTTP `PUT` verb tells the service to update the resource designated by a URI with the body of the enclosed request. Thus, to update the resource at `/bob/bookmarks`, I might send the same JSON representation returned from the `GET` call, with updated fields. The service will *replace* the value.
 * the HTTP `POST` verb tells the service to *do something* with the enclosed body of the request. There's no hard and fast rules here, but typically an HTTP `POST` call to `/bob/bookmarks` will *add*, or *append*, the enclosed body to the collection (database, filesystem, whatever) designated by the `/bob/bookmarks` URI. It can be a little confusing, though. An HTTP `POST` to `/bob/bookmarks/1`, on the other hand, might be treated in the same way as an HTTP `PUT` call; the service could take the enclosed body and use it to *replace* the resource designated by the URI. 
 
 Of course, sometimes things don't go to plan. Perhaps the browser timed out, or the service has timed out, or the service encounters an error. We've all gotten the annoying 404 ("Page not found") error when attempting to visit a page that doesn't exist or couldn't be routed to correctly. That 404 is a *status code*. It conveys information about the state of the operation. There are http://en.wikipedia.org/wiki/List_of_HTTP_status_codes[*many* status codes] divided along ranges for different purposes. When you make a request to a webpage in the browser, it is an HTTP `GET` call, and - if the page shows up - it will have returned a 200 status code. 200 means `OK`; you may not know it, but it's there. 
