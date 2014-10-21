@@ -1,5 +1,7 @@
-= Building REST Services with Spring
-
+:toc:
+:project_id: tut-bookmarks
+:icons: font
+:source-highlighter: prettify
 :javaee-api-root: http://docs.oracle.com/javaee/7/api/
 :image-width: 500
 :book-root: .
@@ -7,6 +9,8 @@
 :rest-application-test: /rest/src/test/java/bookmarks/BookmarkRestControllerTest.java
 :hateoas-application: /hateoas/src/main/java/bookmarks/Application.java
 :security-application: /security/src/main/java/bookmarks/Application.java
+
+= Building REST Services with Spring
 
 REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume.
 
