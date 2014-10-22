@@ -96,7 +96,7 @@ Our application will use Spring Boot. A Spring Boot application is, at a minimum
 
 [source,java] 
 ----
-include::{book-root}/snippets/basic-application.txt[]
+include::{book-root}/rest/src/main/java/bookmarks/Application.java[tag=runner]
 ----  
 
 Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn't use Java 6 or 7, simply substituting the more concise lambda syntax for a slightly more verbose anonymous inner class implementing the interface in question. 
