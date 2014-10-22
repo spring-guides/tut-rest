@@ -40,14 +40,16 @@ image::http://martinfowler.com/articles/images/richardsonMaturityModel/overview.
 
 
 
-## Getting Started
+== Getting Started
+
 As we work through this tutorial, we'll use http://spring.io/projects/spring-boot[Spring Boot] Spring Boot removes a lot of the boilerplate typical of application development. You can get started by going to the http://start.spring.io/[Spring Initializr]  and selecting the checkboxes that correspond to the *type* of workload your application will support. In this case, we're going to build a *web* application. So, select "Web" and then choose  "Generate." A `.zip` will start downloading. Unzip it. In it, you'll find a simple, Maven or Gradle-ready directory structure, complete with a Maven `pom.xml` and a Gradle `build.gradle`. Delete the build artifact you don't want to use. Most people are using Maven these days, so - where appropriate - the examples in this tutorial will be Maven based. However, if you haven't looked at Gradle, do. It's *very* nice.
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. http://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
 video::p8AdyMlpmPk[youtube]
 
-## The Story so Far...
+== The Story so Far...
+
 All of our examples will be based on Spring Boot. We'll reprint the same setup code for each example. Our example models a simple bookmark service, à la Instapaper or other cloud-based bookmarking services. Our bookmark service simply collects a URI, and a description. All bookmarks belong to a user account. This relationship is modeled using JPA and Spring Data JPA repositories in https://github.com/joshlong/bookmarks/tree/tutorial/model/[the `model` module].
 
 We won't dive too much into the code. We're using two JPA entities to  model the records as they'll live in a database. We're using a standard SQL database to store our records so that the domain is as immediately useful to as large an audience as possible.
@@ -88,7 +90,6 @@ Here's the repository for working with `Bookmark` entities.
 include::{book-root}/model/src/main/java/bookmarks/BookmarkRepository.java[]
 ---- 
 
-
 The `BookmarkRepository` has a similar finder method, but this one dereferences the `username` property on the `Bookmark` entity's `Account` relationship, ultimately requiring a join of some sort. The JPA query it generates is, *roughly*, `SELECT b from Bookmark b WHERE b.account.username = :username`.
 
 Our application will use Spring Boot. A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@EnableAutoConfiguration` annotation. This tells Spring Boot to help out, wherever possible. Our `Application` class is also a good place to stick of odds and ends, like `@Bean` definitions. Here's what our simplest `Application.java` class will look like:
@@ -98,11 +99,9 @@ Our application will use Spring Boot. A Spring Boot application is, at a minimum
 include::{book-root}/snippets/basic-application.txt[]
 ----  
 
-
 Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn't use Java 6 or 7, simply substituting the more concise lambda syntax for a slightly more verbose anonymous inner class implementing the interface in question. 
 
-
-## HTTP is the Platform 
+== HTTP is the Platform 
 
 HTTP URIs are a natural way to describe hierarchies, or relationships. For example, we might start our REST API at the account level. All URIs start with an account's username. Thus, for an account named `bob`, we might address that account as `/users/bob` or even just `/bob`. To access the collection of bookmarks for that user, we can *descend* one level down (like a file system) to the `/bob/bookmarks` resource. 
 
@@ -110,7 +109,7 @@ REST does *not* prescribe a representation or encoding. REST, short for *Represe
 
 We can use HTTP verbs to manipulate the data represented by those URIs. 
 
-*  the HTTP `GET` verb tells the service to *get*, or retrieve, the resource designated by a URI. How it does this is, of course, implementation specific. The backend code might talk to a database, a file system, another webservice, etc. The client doesn't need to be aware of this, though. To the client, all resources are HTTP resources, and in the world of HTTP, there's only one way to ask for data: `GET`. `GET` calls have no body in the request, but typically return a body. The response to an HTTP `GET` request for  `/bob/bookmarks/6` might look like:
+* the HTTP `GET` verb tells the service to *get*, or retrieve, the resource designated by a URI. How it does this is, of course, implementation specific. The backend code might talk to a database, a file system, another webservice, etc. The client doesn't need to be aware of this, though. To the client, all resources are HTTP resources, and in the world of HTTP, there's only one way to ask for data: `GET`. `GET` calls have no body in the request, but typically return a body. The response to an HTTP `GET` request for  `/bob/bookmarks/6` might look like:
 +
 [source,json] 
 ----
@@ -129,7 +128,7 @@ Of course, sometimes things don't go to plan. Perhaps the browser timed out, or 
 * Status codes in the **400x range** (from 400-499)   is intended for cases in which the client seems to have erred and must correct the request before continuing. The aforementioned 404 is an example of this.
 * Status codes in the **500x range** (from 500-599)  is intended for cases where the server failed to fulfill an apparently valid request.
 
-## Building a REST service 
+== Building a REST service 
 
 The first cut of a bookmark REST service should at least support reading from, and adding to, an account's bookmarks, as well as reading individual ones. Below is the first cut at our REST service:
 
@@ -160,13 +159,11 @@ Spring MVC natively supports file uploads via controller arguments of type `Mult
 Spring MVC makes it easy to write service-oriented code whose shape is untainted by `HttpServlet` APIs.
 This code can be easily unit tested, extended through Spring AOP. We'll look at how to unit test these Spring MVC components in the next section.
 
-### Using HTTP to signal Errors 
+=== Using HTTP to signal Errors 
  
-
 All the methods in the REST service call `validateUser` which in turn verifies that the user in question exists and - if it doesn't - throws a `UserNotFoundException`. The definition of this exception is shown. It's annotated with a Spring MVC `@ResponseStatus(HttpStatus.NOT_FOUND)` which tells Spring MVC to send back an HTTP status code (404) whenever this exception is triggered. This is a _really_ nice arrangement: you can think in terms of your business domain in your code _and_ you get smart handling that maps nicely to how HTTP signals errors to the client, using status codes. Spring MVC provides a _lot_ of different places to cleanly http://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc[layer in generic, application-global and controller-local error handling logic]. 
 
-
-###  Testing a REST Service
+==  Testing a REST Service
 
 Spring MVC provides great support http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/testing.html#spring-mvc-test-framework[for unit testing HTTP endpoints]. It provides a very nice middle ground between unit-testing and integration-testing in that it lets you stand up the entire Spring MVC `DispatcherServlet`-based machinery - including validators, `HttpMessageConverter` s, and more - and then run tests against them _without_ actually starting up a _real_ HTTP service: the best of both worlds! It's an integration-test in that the logic you care about is actually being exercised, but it's a unit-test in that you're not actually waiting for a web server to initialize and start servicing requests. 
 
@@ -182,10 +179,7 @@ The first thing to look at is this `@Before`-annotated `setup` method. The first
 
 All tests specify a `application/json` `content-type` and expect responses of that `content-type`, as well. The tests use the `MockMvcResultMatchers#jsonPath` method to validate the structure and contents of the JSON responses. This, in turn, uses the Jayway JSON Path API to run X-Path-style traversals on JSON structures, as we do in various places in the unit tests.
 
-
-
-
-## Building a HATEOAS REST Service
+== Building a HATEOAS REST Service
 
 // Some of these sentences are from, and inspired by, the very nice Wikipedia article on REST 
 //  (http://en.wikipedia.org/wiki/Representational_state_transfer#Uniform_interface) 
@@ -194,7 +188,6 @@ The first cut of the API works very well. If this service were well documented, 
 
 But, we can do better. The services as they stand are adequate to the task but lack.. *staying power*. As Wikipedia says: Clients must know the API a priori. Changes in the API break clients and they *break* the documentation about the service.  Hypermedia as the engine of application state (a.k.a. http://en.wikipedia.org/wiki/HATEOAS[**HATEOAS**]) is one more constraint that addresses and removes this coupling.  Clients make state transitions only through actions that are dynamically identified within hypermedia by the server (e.g., by hyperlinks within hypertext). Except for simple fixed entry points to the application, a client does not assume that any particular action is available for any particular resources beyond those described in representations previously received from the server.  
  
-
 Let's look at a revised cut of this API (shown below), this time embracing  HATEOAS with http://spring.io/projects/spring-hateoas[Spring HATEOAS].  It is a slight simplification to say that Spring HATEOAS makes it easy to provide links - metadata about payloads being returned to the client - but that is how we will approach it. Fundamentally, all we will do is *wrap* our response payloads using Spring HATEOAS' `ResourceSupport` type. `ResourceSupport` accumulates `Link` objects which in turn describe useful, related resources. For example, a resource describing an account in an e-commerce solution could have a link to the resource for that account's orders, a link to that account's current shopping cart, and a link that can be used to retrieve that resources state again. 
 
 `hateoas/src/main/java/bookmarks/Application.java`
@@ -212,7 +205,7 @@ At a minimum, a resource should provide a link to itself (usually a link whose `
 
 With this in place, the only remaining changes substitute  `Bookmark` types for `BookmarkResource` types. 
 
-###  Improved Error Handling with `VndErrors`
+===  Improved Error Handling with `VndErrors`
 
 HATEOAS gives clients  improved metadata about the service itself. We can improve the situation for our error handling, as well. HTTP status codes tell the client - broadly - that something went wrong. HTTP status codes from 400-499, for example, tell the client that the client did something wrong. HTTP status codes from 500-599 tell the client that the server did something wrong. If you know your status codes, then this can be a _start_ in understanding how to work with the API. But, we can do better. After all, before a REST client is up and running, _somebody_ needs to develop it, and useful error messages can be invaluable in understanding an API. Errors that can be handled in a consistent way are even better! 
 
@@ -221,7 +214,7 @@ https://github.com/blongden/vnd.error[`VndError`] is a popular, de-facto standar
 Our revised service introduces a new class, `BookmarkControllerAdvice`, that uses Spring MVC's `@ControllerAdvice` annotation. `@ControllerAdvice` are a useful way to extricate the configuration of common concerns - like error handling - into a separate place, away from any individual Spring MVC controller. Spring MVC, for example, defines the `@ExceptionHandler` method that ties a specific handler method to any incident of an `Exception` or a HTTP status code. Here, we're telling Spring MVC that any code that throws a `UserNotFoundException`, as before, should eventually be handled by the `userNotFoundExceptionHandler` method. This method simply wraps the propagated `Exception` in a `VndErrors` and returns it to the client. In this example, we've removed the `@ResponseStatus` annotation from the exception itself and centralized it in the `@ControllerAdvice` type.  `@ControllerAdvice` types are a convenient way to centralize all sorts of logic, and - unlike annotating exception types - can be used even for exception types to which you don't have the source code. 
 
 
-## Securing a REST Service   
+== Securing a REST Service   
 
 Thus far we've proceeded from the assumption that all clients are trustworthy, and that they should have unmitigated access to all the data. This is rarely actually the case. An open REST API is an insecure one. It's not hard to fix that, though. http://spring.io/projects/spring-security[Spring Security] provides primitives for securing application access. Fundamentally, Spring Security needs to have some idea of your application's users and their privileges. These privileges, or *authorities*, answer the question: what may an application user see,  or do?  
 
@@ -237,7 +230,7 @@ Spring Security provides many implementations of this contract that adapt  exist
  
 Our example already has a notion of an `Account`, so we can simply adapt that by providing our own `UserDetailsService` implementation, as shown below in the `WebSecurityConfiguration` `@Configuration`-class . Spring Security will ask this `UserDetailsService`  if it has any questions about an authentication request. 
 
-### Client Authentication and Authorization on the Open Web with Spring Security  OAuth 
+=== Client Authentication and Authorization on the Open Web with Spring Security  OAuth 
 We can authenticate client requests in a myriad of ways. Clients could send, for example, an HTTP-basic username  and password on each request. They could transmit an x509 certificate on each request. There are indeed numerous approaches that could be used here, with numerous tradeoffs.  
 
 Our API is meant to be consumed over the open-web. It's meant to be used by all manner of HTML5 and native mobile and desktop clients that we intend to build. We shall use  diverse clients with diverse security capabilities, and any solution we pick should be able to accommodate that. We should also decouple the user's username and password from the application's session. After all, if I reset my Twitter password, I don't want to be forced to re-authenticate every client signed in. On the other hand, if someone *does* hijack one of our clients (perhaps a user has lost a  phone), we don't want the party that stole the device to be able to lock our users out of their accounts. 
@@ -255,14 +248,14 @@ Setting up OAuth security for our application is easy.  The `OAuth2Configuration
 
 OAuth is very flexible. You could, for example, deploy an authorization server that's shared by many REST APIs. In this case, our OAuth implementation lives adjacent to our bookmarks REST API. They are one and the same. This is why we've used both `@EnableResourceServer` and `@EnableAuthorizationServer` in the same configuration class.  
 
-### You Said Something about the Open Web?
+=== You Said Something about the Open Web?
  
 We expect that some of the clients to our service will be HTML5-based. They will want to talk to our REST API from different domains, and in most browsers this runs afoul of cross-site-scripting security measures. We can explicitly enable XSS for well-known clients by exposing CORS (cross-origin request scripting) headers. These headers, when present in the service responses, signal to the browser that requests of the origin, shape and configuration described in the headers *are* permitted, even across domains. Our API is decorated with a simple `javax.servlet.Filter` that adds these headers on every request. In the example, we're delegating to a property - `tagit.origin` - if provided or a default of `http://localhost:9000` where we might have, for example, a JavaScript client making requests to the service. We could just as easily read this information from a datastore which we can change without recompiling the code. We've only specified a single origin here, but we could just as easily specified numerous clients.  
 
-### Using HTTPS (SSL/TLS) to prevent Man-in-the-Middle Attacks
+=== Using HTTPS (SSL/TLS) to prevent Man-in-the-Middle Attacks
 Spring Boot provides an embedded web server (Apache Tomcat, by default) that can be configured programmatically to do anything that the standalone Apache Tomcat webserver can do.  To configure HTTPS (SSL/TLS), you need only register a `org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer` bean. Our bean simply wires up the Apache Tomcat connector to support HTTPS (SSL or TLS-encrypted) traffic. HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. Note that, to support ease of configuration, this bean's only available using the Spring profile named `https`: this means that you can run and test the application *without* the profile applied or switch it on just as easily. 
 
-### Putting it All Together 
+=== Putting it All Together 
 
 `security/src/main/java/bookmarks/Application.java`
 [source,java] 
@@ -273,7 +266,7 @@ include::{book-root}/security/src/main/java/bookmarks/Application.java[]
 With Spring Security OAuth in place, we can rework our API a little bit. It makes little sense to have `userId` s strewn throughout the URIs for our API. After all, the user context is _implied_ in the secure access of our endpoints. Instead of requiring a `userId` in the path, the secure Spring MVC handler methods expect a `javax.security.Principal` that Spring Security injects on our behalf. This principal offers a `javax.security.Principal#getName` method that can be used in place of the `userId`. 
 
 
-## Conclusion 
+== Conclusion 
 REST is the most natural way for ubiquitous, disparate clients to communicate. It works because HTTP works. Once you understand how REST fits into an application, it's not hard to envision an architecture with numerous, singly focused APIs all exposed over REST, load-balanced as any other HTTP service would be. It is not surprising, then, that REST (often, but not necessarily) forms a critical foundation for _microservices_, which we'll look at in more depth in an upcoming tutorial. 
 
 
