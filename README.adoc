@@ -1,6 +1,6 @@
 ---
 tags: [rest, hateoas, hypermedia, security, testing, oauth]
-projects: [spring-framework, spring-hateoas, spring-security, spring-security-oauth2]
+projects: [spring-framework, spring-hateoas, spring-security, spring-security-oauth]
 ---
 :toc:
 :project_id: tut-bookmarks
