@@ -253,7 +253,47 @@ OAuth is very flexible. You could, for example, deploy an authorization server t
 We expect that some of the clients to our service will be HTML5-based. They will want to talk to our REST API from different domains, and in most browsers this runs afoul of cross-site-scripting security measures. We can explicitly enable XSS for well-known clients by exposing CORS (cross-origin request scripting) headers. These headers, when present in the service responses, signal to the browser that requests of the origin, shape and configuration described in the headers *are* permitted, even across domains. Our API is decorated with a simple `javax.servlet.Filter` that adds these headers on every request. In the example, we're delegating to a property - `tagit.origin` - if provided or a default of `http://localhost:9000` where we might have, for example, a JavaScript client making requests to the service. We could just as easily read this information from a datastore which we can change without recompiling the code. We've only specified a single origin here, but we could just as easily specified numerous clients.  
 
 === Using HTTPS (SSL/TLS) to prevent Man-in-the-Middle Attacks
-Spring Boot provides an embedded web server (Apache Tomcat, by default) that can be configured programmatically to do anything that the standalone Apache Tomcat webserver can do.  To configure HTTPS (SSL/TLS), you need only register a `org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer` bean. Our bean simply wires up the Apache Tomcat connector to support HTTPS (SSL or TLS-encrypted) traffic. HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. Note that, to support ease of configuration, this bean's only available using the Spring profile named `https`: this means that you can run and test the application *without* the profile applied or switch it on just as easily. 
+
+Spring Boot provides an embedded web server (Apache Tomcat, by default) that can be configured programmatically to do anything that the standalone Apache Tomcat webserver can do. In the past, it required several tedious steps to configure HTTPS (SSL/TLS). Now, Spring Boot makes it super simple to do that declaratively. First, create the following:
+
+`security/src/main/resources/application-https.properties`
+[source,properties]
+----
+include::security/src/main/resources/application-https.properties[]
+----
+
+NOTE: This property file is only activated when the app is run when *SPRING_PROFILES_ACTIVE* configured with profile *https*.
+
+HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. To do so, we can use the JDK's *keytool* like this:
+
+----
+$ keytool -genkey -alias bookmarks -keyalg RSA -keystore src/main/resources/tomcat.keystore
+Enter keystore password: password
+Re-enter new password: password
+What is your first and last name?
+  [Unknown]:  Josh Long
+What is the name of your organizational unit?
+  [Unknown]:  Spring Team
+What is the name of your organization?
+  [Unknown]:  Pivotal
+What is the name of your City or Locality?
+  [Unknown]:  IoT
+What is the name of your State or Province?
+  [Unknown]:  Earth
+What is the two-letter country code for this unit?
+  [Unknown]:  US
+Is CN=Josh Long, OU=Spring Team, O=Pivotal, L=IoT, ST=Earth, C=US correct?
+  [no]:  yes
+
+Enter key password for <learningspringboot>
+	(RETURN if same as keystore password): <RETURN>
+----
+
+WARNING: keystore files MUST be on the file system for embedded Tomcat to read them. They can NOT be embedded in JAR files. (And frankly, that type of security item should NOT be part of your deliverable anyway.)
+
+This will create a keystore underneath `src/main/resources`. Now if you run the app, it will use the keystore to run the embedded Tomcat servlet container using SSL/TLS.
+ 
+As stated earlier, this mode is only available using the Spring profile named `https`. This means that you can run and test the application *without* the profile applied or switch it on just as easily.
 
 === Putting it All Together 
 
