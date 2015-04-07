@@ -57,6 +57,13 @@ class BookmarkRestController {
 
 	private final AccountRepository accountRepository;
 
+	@Autowired
+	BookmarkRestController(BookmarkRepository bookmarkRepository,
+			AccountRepository accountRepository) {
+		this.bookmarkRepository = bookmarkRepository;
+		this.accountRepository = accountRepository;
+	}
+
 	@RequestMapping(method = RequestMethod.POST)
 	ResponseEntity<?> add(@PathVariable String userId, @RequestBody Bookmark input) {
 		this.validateUser(userId);
@@ -85,13 +92,6 @@ class BookmarkRestController {
 	Collection<Bookmark> readBookmarks(@PathVariable String userId) {
 		this.validateUser(userId);
 		return this.bookmarkRepository.findByAccountUsername(userId);
-	}
-
-	@Autowired
-	BookmarkRestController(BookmarkRepository bookmarkRepository,
-			AccountRepository accountRepository) {
-		this.bookmarkRepository = bookmarkRepository;
-		this.accountRepository = accountRepository;
 	}
 
 	private void validateUser(String userId) {
