@@ -338,7 +338,7 @@ We need a top level class to run our application:
 `security/src/main/java/bookmarks/Application.java`
 [source,java] 
 ---- 
-include::{book-root}/security/src/main/java/bookmarks/Application.java[]
+include::{book-root}/security/src/main/java/bookmarks/Application.java[tag=code]
 ----
 
 This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
@@ -348,7 +348,7 @@ Next, we need to configure the means to load security details from a data store:
 `security/src/main/java/bookmarks/WebSecurityConfiguration.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/WebSecurityConfiguration.java[]
+include::{book-root}/security/src/main/java/bookmarks/WebSecurityConfiguration.java[tag=code]
 ----
 
 This class uses the `GlobalAuthenticationConfigurerAdapter` to build a `UserDetailsService` and hooks into our Spring Data repository.
@@ -358,7 +358,7 @@ Next, we need to lay out our OAuth2 security policy:
 `security/src/main/java/bookmarks/OAuth2Configuration.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[]
+include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[tag=code]
 ----
 
 With these bits, we are able to institute the policies mentioned earlier.
@@ -368,7 +368,7 @@ Next, we need to declare the details of our REST resource for bookmarks:
 `security/src/main/java/bookmarks/BookmarkResource.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/BookmarkResource.java[]
+include::{book-root}/security/src/main/java/bookmarks/BookmarkResource.java[tag=code]
 ----
 
 This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
@@ -378,7 +378,7 @@ Now let's layout the details of our REST endpoints:
 `security/src/main/java/bookmarks/BookmarkRestController.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/BookmarkRestController.java[]
+include::{book-root}/security/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
 This controller serves up the whole collection, accepts new bookmarks, and also lets you retrieve an individual bookmark. Look closely to see how each operation is done, links and all.
@@ -388,7 +388,7 @@ To nicely handle exceptions, the following bit of Spring MVC controller advice i
 `security/src/main/java/bookmarks/BookmarkControllerAdvice.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/BookmarkControllerAdvice.java[]
+include::{book-root}/security/src/main/java/bookmarks/BookmarkControllerAdvice.java[tag=code]
 ----
 
 It translates a `UserNotFoundException` into an HTTP 404 status code (NOT FOUND) with a media type of `application/vnd.error`.
@@ -398,7 +398,7 @@ The `UserNotFoundException` is simply a runtime exception:
 `security/src/main/java/bookmarks/UserNotFoundException.java`
 [source,java]
 ----
-include::{book-root}/security/src/main/java/bookmarks/UserNotFoundException.java[]
+include::{book-root}/security/src/main/java/bookmarks/UserNotFoundException.java[tag=code]
 ----
 
 Want to run it?

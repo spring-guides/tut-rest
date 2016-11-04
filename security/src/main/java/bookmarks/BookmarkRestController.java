@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  * @author Josh Long
  * @author Greg Turnquist
  */
+// tag::code[]
 @RestController
 @RequestMapping("/bookmarks")
 class BookmarkRestController {
@@ -95,3 +96,4 @@ class BookmarkRestController {
 				() -> new UserNotFoundException(userId));
 	}
 }
+// end::code[]

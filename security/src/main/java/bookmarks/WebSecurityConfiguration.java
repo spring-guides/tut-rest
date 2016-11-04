@@ -28,6 +28,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 /**
  * @author Josh Long
  */
+// tag::code[]
 @Configuration
 class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
@@ -50,3 +51,4 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 								+ username + "'"));
 	}
 }
+// end::code[]

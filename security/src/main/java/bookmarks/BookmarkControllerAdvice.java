@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Josh Long
  */
+// tag::code[]
 @ControllerAdvice
 class BookmarkControllerAdvice {
 
@@ -35,3 +36,4 @@ class BookmarkControllerAdvice {
 		return new VndErrors("error", ex.getMessage());
 	}
 }
+// end::code[]

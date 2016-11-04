@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
  * @author Josh Long
  * @author Greg Turnquist
  */
+// tag::code[]
 @Configuration
 @EnableResourceServer
 @EnableAuthorizationServer
@@ -68,3 +69,4 @@ class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 			.secret("123456");
 	}
 }
+// end::code[]
