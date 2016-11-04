@@ -42,7 +42,13 @@ image::http://martinfowler.com/articles/images/richardsonMaturityModel/overview.
 
 == Getting Started
 
-As we work through this tutorial, we'll use http://spring.io/projects/spring-boot[Spring Boot] Spring Boot removes a lot of the boilerplate typical of application development. You can get started by going to the http://start.spring.io/[Spring Initializr]  and selecting the checkboxes that correspond to the *type* of workload your application will support. In this case, we're going to build a *web* application. So, select "Web" and then choose  "Generate." A `.zip` will start downloading. Unzip it. In it, you'll find a simple, Maven or Gradle-ready directory structure, complete with a Maven `pom.xml` and a Gradle `build.gradle`. Delete the build artifact you don't want to use. Most people are using Maven these days, so - where appropriate - the examples in this tutorial will be Maven based. However, if you haven't looked at Gradle, do. It's *very* nice.
+As we work through this tutorial, we'll use http://spring.io/projects/spring-boot[Spring Boot] Spring Boot removes a lot of the boilerplate typical of application development. You can get started by going to the http://start.spring.io/[Spring Initializr]  and selecting the checkboxes that correspond to the *type* of workload your application will support. In this case, we're going to build a *web* application, using *jpa* to model records in an *h2* database. So, select the following:
+
+* Web
+* JPA
+* H2
+
+Then choose  "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven or Gradle-based directory structure, complete with a Maven `pom.xml` or a Gradle `build.gradle`. The examples in this tutorial will be Maven based. However, if you haven't looked at Gradle, do. It's *very* nice.
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. http://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
