@@ -97,9 +97,9 @@ Our application will use Spring Boot. A Spring Boot application is, at a minimum
 [source,java] 
 ----
 include::{book-root}/rest/src/main/java/bookmarks/Application.java[tag=runner]
-----  
+----
 
-Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn't use Java 6 or 7, simply substituting the more concise lambda syntax for a slightly more verbose anonymous inner class implementing the interface in question. 
+Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn't use Java 6 or 7, simply substituting the more concise lambda syntax for a slightly more verbose anonymous inner class implementing the interface in question.
 
 == HTTP is the Platform 
 
@@ -156,6 +156,25 @@ There are paths not taken. By default Spring Boot sets up a pretty generous coll
 
 Spring MVC natively supports file uploads via controller arguments of type `MultipartFile multipartFile`.
 
+Want to run it?
+
+----
+$ cd rest
+$ mvn clean spring-boot:run
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::
+
+2016-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/rest/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
+...
+----
+
+WARNING: If you have never done this tutorial before, you need to run `mvn install` once. It installs the top-level POM artifact in your `/.m2` folder. From there on, you can run each section (each section is its own submodule) quite easily.
+
 Spring MVC makes it easy to write service-oriented code whose shape is untainted by `HttpServlet` APIs.
 This code can be easily unit tested, extended through Spring AOP. We'll look at how to unit test these Spring MVC components in the next section.
 
@@ -186,7 +205,7 @@ All tests specify a `application/json` `content-type` and expect responses of th
 
 The first cut of the API works very well. If this service were well documented, it would be workable for REST clients in many different languages. It is a clean API, in that it takes advantage of some of the primitives that HTTP provides, in a well-understood way. One measure of an API is by its compliance with  the http://en.wikipedia.org/wiki/Representational_state_transfer#Uniform_interface[uniform interface principle]. HTTP REST APIs like the one we have so far stack up pretty well. Each message includes enough information to describe how to process the message. For example, a client might  decide which parser to invoke based on  the `Content-Type` header in the request message. The state in the system is mapped into uniquely identifying resource URIs. State is addressable. Mutations in state are done through known HTTP verbs (`POST`, `GET`, `DELETE`, `PUT`, etc.). Thus, when a client holds a representation of a resource, including any metadata attached, it has enough information to modify or delete the resource.
 
-But, we can do better. The services as they stand are adequate to the task but lack.. *staying power*. As Wikipedia says: Clients must know the API a priori. Changes in the API break clients and they *break* the documentation about the service.  Hypermedia as the engine of application state (a.k.a. http://en.wikipedia.org/wiki/HATEOAS[**HATEOAS**]) is one more constraint that addresses and removes this coupling.  Clients make state transitions only through actions that are dynamically identified within hypermedia by the server (e.g., by hyperlinks within hypertext). Except for simple fixed entry points to the application, a client does not assume that any particular action is available for any particular resources beyond those described in representations previously received from the server.  
+But we can do better. The services as they stand are adequate to the task but lack.. *staying power*. As Wikipedia says: Clients must know the API a priori. Changes in the API break clients and they *break* the documentation about the service.  Hypermedia as the engine of application state (a.k.a. http://en.wikipedia.org/wiki/HATEOAS[**HATEOAS**]) is one more constraint that addresses and removes this coupling.  Clients make state transitions only through actions that are dynamically identified within hypermedia by the server (e.g., by hyperlinks within hypertext). Except for simple fixed entry points to the application, a client does not assume that any particular action is available for any particular resources beyond those described in representations previously received from the server.
  
 Let's look at a revised cut of this API (shown below), this time embracing  HATEOAS with http://spring.io/projects/spring-hateoas[Spring HATEOAS].  It is a slight simplification to say that Spring HATEOAS makes it easy to provide links - metadata about payloads being returned to the client - but that is how we will approach it. Fundamentally, all we will do is *wrap* our response payloads using Spring HATEOAS' `ResourceSupport` type. `ResourceSupport` accumulates `Link` objects which in turn describe useful, related resources. For example, a resource describing an account in an e-commerce solution could have a link to the resource for that account's orders, a link to that account's current shopping cart, and a link that can be used to retrieve that resources state again. 
 
@@ -203,11 +222,28 @@ These `Link` s, by the way, are of the same sort as the  `<link/>` element so of
 The `BookmarkResource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.  
 At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/{userId}/bookmarks/{id}[`http://127.0.0.1:8080/\{userId\}/bookmarks/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@RequestMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the `@RequestMapping` metadata on a Spring MVC controller, and how to build a link based on the `@RequestMapping` metadata on a specific Spring MVC controller method.
 
+Ready to see how this changes things?
+
+----
+$ cd ../hateoas
+$ mvn clean spring-boot:run
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::
+
+2016-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/hateoas/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
+...
+----
+
 With this in place, the only remaining changes substitute  `Bookmark` types for `BookmarkResource` types. 
 
 ===  Improved Error Handling with `VndErrors`
 
-HATEOAS gives clients  improved metadata about the service itself. We can improve the situation for our error handling, as well. HTTP status codes tell the client - broadly - that something went wrong. HTTP status codes from 400-499, for example, tell the client that the client did something wrong. HTTP status codes from 500-599 tell the client that the server did something wrong. If you know your status codes, then this can be a _start_ in understanding how to work with the API. But, we can do better. After all, before a REST client is up and running, _somebody_ needs to develop it, and useful error messages can be invaluable in understanding an API. Errors that can be handled in a consistent way are even better! 
+HATEOAS gives clients improved metadata about the service itself. We can improve the situation for our error handling, as well. HTTP status codes tell the client - broadly - that something went wrong. HTTP status codes from 400-499, for example, tell the client that the client did something wrong. HTTP status codes from 500-599 tell the client that the server did something wrong. If you know your status codes, then this can be a _start_ in understanding how to work with the API. But, we can do better. After all, before a REST client is up and running, _somebody_ needs to develop it, and useful error messages can be invaluable in understanding an API. Errors that can be handled in a consistent way are even better!
 
 https://github.com/blongden/vnd.error[`VndError`] is a popular, de-facto standard mime-type that describes the encoding of errors to the client of a REST service. It works well with errors in the 40x and 50x range of errors. Spring HATEOAS provides `VndError` types that you can use to report errors back to your client. 
 
@@ -295,13 +331,96 @@ This will create a keystore underneath `src/main/resources`. Now if you run the 
  
 As stated earlier, this mode is only available using the Spring profile named `https`. This means that you can run and test the application *without* the profile applied or switch it on just as easily.
 
-=== Putting it All Together 
+=== Putting it All Together
+
+We need a top level class to run our application:
 
 `security/src/main/java/bookmarks/Application.java`
 [source,java] 
 ---- 
 include::{book-root}/security/src/main/java/bookmarks/Application.java[]
-----   
+----
+
+This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
+
+Next, we need to configure the means to load security details from a data store:
+
+`security/src/main/java/bookmarks/WebSecurityConfiguration.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/WebSecurityConfiguration.java[]
+----
+
+This class uses the `GlobalAuthenticationConfigurerAdapter` to build a `UserDetailsService` and hooks into our Spring Data repository.
+
+Next, we need to lay out our OAuth2 security policy:
+
+`security/src/main/java/bookmarks/OAuth2Configuration.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[]
+----
+
+With these bits, we are able to institute the policies mentioned earlier.
+
+Next, we need to declare the details of our REST resource for bookmarks:
+
+`security/src/main/java/bookmarks/BookmarkResource.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/BookmarkResource.java[]
+----
+
+This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
+
+Now let's layout the details of our REST endpoints:
+
+`security/src/main/java/bookmarks/BookmarkRestController.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/BookmarkRestController.java[]
+----
+
+This controller serves up the whole collection, accepts new bookmarks, and also lets you retrieve an individual bookmark. Look closely to see how each operation is done, links and all.
+
+To nicely handle exceptions, the following bit of Spring MVC controller advice is registered:
+
+`security/src/main/java/bookmarks/BookmarkControllerAdvice.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/BookmarkControllerAdvice.java[]
+----
+
+It translates a `UserNotFoundException` into an HTTP 404 status code (NOT FOUND) with a media type of `application/vnd.error`.
+
+The `UserNotFoundException` is simply a runtime exception:
+
+`security/src/main/java/bookmarks/UserNotFoundException.java`
+[source,java]
+----
+include::{book-root}/security/src/main/java/bookmarks/UserNotFoundException.java[]
+----
+
+Want to run it?
+
+----
+$ cd security
+$ mvn clean spring-boot:run
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::
+
+2016-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/security/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
+2016-11-04 11:54:21.137  INFO 73989 --- [           main] bookmarks.Application                    : No active profile set, falling back to default profiles: default
+2016-11-04 11:54:21.181  INFO 73989 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@3db919e6: startup date [Fri Nov 04 11:54:21 CDT 2016]; root of context hierarchy
+2016-11-04 11:54:22.116  WARN 73989 --- [           main] o.s.c.a.ConfigurationClassPostProcessor  : Cannot enhance @Configuration bean definition 'org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration$TokenKeyEndpointRegistrar' since its singleton instance has been created too early. The typical cause is a non-static @Bean method with a BeanDefinitionRegistryPostProcessor return type: Consider declaring such methods as 'static'.
+2016-11-04 11:54:22.392  INFO 73989 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [class org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$240a3410] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+...
+----
 
 With Spring Security OAuth in place, we can rework our API a little bit. It makes little sense to have `userId` s strewn throughout the URIs for our API. After all, the user context is _implied_ in the secure access of our endpoints. Instead of requiring a `userId` in the path, the secure Spring MVC handler methods expect a `javax.security.Principal` that Spring Security injects on our behalf. This principal offers a `javax.security.Principal#getName` method that can be used in place of the `userId`. 
 
