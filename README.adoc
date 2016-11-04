@@ -92,7 +92,7 @@ include::{book-root}/model/src/main/java/bookmarks/BookmarkRepository.java[]
 
 The `BookmarkRepository` has a similar finder method, but this one dereferences the `username` property on the `Bookmark` entity's `Account` relationship, ultimately requiring a join of some sort. The JPA query it generates is, *roughly*, `SELECT b from Bookmark b WHERE b.account.username = :username`.
 
-Our application will use Spring Boot. A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@EnableAutoConfiguration` annotation. This tells Spring Boot to help out, wherever possible. Our `Application` class is also a good place to stick of odds and ends, like `@Bean` definitions. Here's what our simplest `Application.java` class will look like:
+Our application will use Spring Boot. A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@SpringBootApplication` annotation. This tells Spring Boot to help out, wherever possible. Our `Application` class is also a good place to stick of odds and ends, like `@Bean` definitions. Here's what our simplest `Application.java` class will look like:
 
 [source,java] 
 ----
