@@ -138,29 +138,41 @@ Of course, sometimes things don't go to plan. Perhaps the browser timed out, or 
 
 The first cut of a bookmark REST service should at least support reading from, and adding to, an account's bookmarks, as well as reading individual ones. Below is the first cut at our REST service:
 
-`rest/src/main/java/bookmarks/Application.java`
-[source,java] 
----- 
-include::{book-root}/rest/src/main/java/bookmarks/Application.java[]
-----   
+We already saw the `@SpringBootApplication` runner code earlier.
 
-`BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@RequestMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the   `@RequestMapping` annotation on the method.  
+The cornerstone of our REST service is the `BookmarkRestController`:
 
-`@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/{userId}/bookmarks/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb 
- 
-The `{userId}` and `{bookmarkId}` tokens in the path are *path variables*. They're globs, or wildcards. Spring MVC will extract those portions of the URI, and make them available as arguments of the same name that are  passed to the controller method and annotated with `@PathVariable`. For an HTTP `GET` request to the URI `/bob/bookmarks/4234`, the `@PathVariable String userId` argument will be `"bob"`, and the `@PathVariable Long bookmarkId` will be coerced to a `long` value of `4234`. 
- 
-These controller methods return simple POJOs - `Collection<Bookmark>`, and `Bookmark`, etc., in all but the `add` case. When an HTTP request comes in that specifies an `Accept` header, Spring MVC loops through the configured `HttpMessageConverter` until it finds one that can convert from the POJO domain model types into the content-type specified in the `Accept` header, if so configured. Spring Boot automatically wires up  an `HttpMessageConverter` that can convert generic `Object` s to http://www.json.org[JSON], absent any more specific converter. `HttpMessageConverter` s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies. 
- 
+`rest/src/main/java/bookmarks/BookmarkRestController.java`
+[source,java]
+----
+include::{book-root}/rest/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
+----
+
+`BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@RequestMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the   `@RequestMapping` annotation on the method.
+
+`@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/{userId}/bookmarks/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb
+
+The `{userId}` and `{bookmarkId}` tokens in the path are *path variables*. They're globs, or wildcards. Spring MVC will extract those portions of the URI, and make them available as arguments of the same name that are  passed to the controller method and annotated with `@PathVariable`. For an HTTP `GET` request to the URI `/bob/bookmarks/4234`, the `@PathVariable String userId` argument will be `"bob"`, and the `@PathVariable Long bookmarkId` will be coerced to a `long` value of `4234`.
+
+These controller methods return simple POJOs - `Collection<Bookmark>`, and `Bookmark`, etc., in all but the `add` case. When an HTTP request comes in that specifies an `Accept` header, Spring MVC loops through the configured `HttpMessageConverter` until it finds one that can convert from the POJO domain model types into the content-type specified in the `Accept` header, if so configured. Spring Boot automatically wires up  an `HttpMessageConverter` that can convert generic `Object` s to http://www.json.org[JSON], absent any more specific converter. `HttpMessageConverter` s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies.
+
 Use `curl` (or your browser) to see the JSON response from `http://localhost:8080/jhoeller/bookmarks`.
- 
-The `add` method specifies a parameter of type `Bookmark` - a POJO. Spring MVC will convert the incoming HTTP request (containing, perhaps, valid JSON) to a POJO using the appropriate `HttpMessageConverter`. 
- 
-The `add` method accepts incoming HTTP requests, saves them and then sends back a `ResponseEntity<T>`. `ResponseEntity` is a wrapper for a response  and, optionally, HTTP headers and a status code. The `add` method sends back a `ResponseEntity` with a status code of 201 (`CREATED`) and a header (`Location`) that the client can consult to learn how the newly created record is referencable. It's a bit like extracting the just generated primary key after saving a record in the database. 
 
-There are paths not taken. By default Spring Boot sets up a pretty generous collection of `HttpMessageConverter` implementations suitable for common use, but it's easy to add support for other, perhaps more compact, network-efficient formats (http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/converter/protobuf/ProtobufHttpMessageConverter.html[like the Google Protocol Buffers implementation in Spring 4.1]) using the usual Spring MVC configuration.  
+The `add` method specifies a parameter of type `Bookmark` - a POJO. Spring MVC will convert the incoming HTTP request (containing, perhaps, valid JSON) to a POJO using the appropriate `HttpMessageConverter`.
+
+The `add` method accepts incoming HTTP requests, saves them and then sends back a `ResponseEntity<T>`. `ResponseEntity` is a wrapper for a response  and, optionally, HTTP headers and a status code. The `add` method sends back a `ResponseEntity` with a status code of 201 (`CREATED`) and a header (`Location`) that the client can consult to learn how the newly created record is referencable. It's a bit like extracting the just generated primary key after saving a record in the database.
+
+There are paths not taken. By default Spring Boot sets up a pretty generous collection of `HttpMessageConverter` implementations suitable for common use, but it's easy to add support for other, perhaps more compact, network-efficient formats (http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/converter/protobuf/ProtobufHttpMessageConverter.html[like the Google Protocol Buffers implementation in Spring 4.1]) using the usual Spring MVC configuration.
 
 Spring MVC natively supports file uploads via controller arguments of type `MultipartFile multipartFile`.
+
+In the event the user doesn't exist, a custom exception is thrown:
+
+`rest/src/main/java/bookmarks/UserNotFoundException.java`
+[source,java]
+----
+include::{book-root}/rest/src/main/java/bookmarks/UserNotFoundException.java[tag=code]
+----
 
 Want to run it?
 
@@ -219,9 +231,74 @@ Let's look at a revised cut of this API (shown below), this time embracing  HATE
 [source,java] 
 ---- 
 include::{book-root}/hateoas/src/main/java/bookmarks/Application.java[]
-----   
+----
 
-These `Link` s, by the way, are of the same sort as the  `<link/>` element so often used in HTML pages to import CSS stylesheets. They have an `href` attribute and a `rel` attribute. The `href` attribute points to where the CSS stylesheet lives, and the `rel` tells the client (the browser) *why* this resource is important (because it's a stylesheet to be used in rendering the page). It's not hard to translate a `link` element into JSON, either.
+This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
+
+Next, we need to declare the details of our REST resource for bookmarks:
+
+`hateoas/src/main/java/bookmarks/BookmarkResource.java`
+[source,java]
+----
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkResource.java[]
+----
+
+This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
+
+Now let's layout the details of our REST endpoints:
+
+`hateoas/src/main/java/bookmarks/BookmarkRestController.java`
+[source,java]
+----
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkRestController.java[]
+----
+
+Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `BookmarkResource`, bringing along the extra goodness of HATEOAS.
+
+It also uses Spring HATEOAS's `Link` API. It let's replace this:
+
+[source,java]
+----
+URI location = ServletUriComponentsBuilder
+	.fromCurrentRequest().path("/{id}")
+	.buildAndExpand(result.getId()).toUri();
+
+return ResponseEntity.created(location).build();
+----
+
+...with this...
+
+[source,java]
+----
+Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
+
+return ResponseEntity.created(URI.create(forOneBookmark.getHref())).build();
+----
+
+WARNING: Spring HATEOAS's `linkTo()` and `methodOn()` APIs assume being called in the context of a web request. That's so they access the same servlet details you just used. When invoked from outside a servlet context, an error message is reported to tip you off.
+
+To nicely handle exceptions, the following bit of Spring MVC controller advice is registered:
+
+`hateoas/src/main/java/bookmarks/BookmarkControllerAdvice.java`
+[source,java]
+----
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkControllerAdvice.java[]
+----
+
+It translates a `UserNotFoundException` into an HTTP 404 status code (NOT FOUND) with a media type of `application/vnd.error`.
+
+The `UserNotFoundException` is simply a runtime exception:
+
+`hateoas/src/main/java/bookmarks/UserNotFoundException.java`
+[source,java]
+----
+include::{book-root}/hateoas/src/main/java/bookmarks/UserNotFoundException.java[]
+----
+
+
+These `Link` s, by the way, are of the same sort as the  `<link/>` element so often used in HTML pages to import CSS stylesheets. They have an `href` attribute and a `rel` attribute. The `href` attribute URI, similar to the web path of a CSS stylesheet, and the `rel` tells the client (the browser) *why* this resource is important (because it's a stylesheet to be used in rendering the page). It's not hard to translate a `link` element into JSON, either.
+
+NOTE: http://stateless.co/hal_specification.html[HAL] (Hypertext Application Language) is one of the most popular hypermedia formats to emerge. It's lightweight, adding little more to JSON encodings than a `_links` attribute to contain a list of hyperlinks and their rels. It also offers the ability to encode collections via an `_embedded` entry. It's the default media type served by Spring HATEOAS, but there are other formats supported as well.
 
 //spend a min to talk about HAL + ALPS
 
@@ -347,7 +424,7 @@ We need a top level class to run our application:
 include::{book-root}/security/src/main/java/bookmarks/Application.java[tag=code]
 ----
 
-This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
+This class has been expand to now include the CORS filter settings in addition to what you wrote earlier.
 
 Next, we need to configure the means to load security details from a data store:
 
@@ -369,17 +446,9 @@ include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[t
 
 With these bits, we are able to institute the policies mentioned earlier.
 
-Next, we need to declare the details of our REST resource for bookmarks:
+The `BookmarkResource` class is the same as before.
 
-`security/src/main/java/bookmarks/BookmarkResource.java`
-[source,java]
-----
-include::{book-root}/security/src/main/java/bookmarks/BookmarkResource.java[tag=code]
-----
-
-This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
-
-Now let's layout the details of our REST endpoints:
+Having introduced security, there a few changes to make to `BookmarkRestController`:
 
 `security/src/main/java/bookmarks/BookmarkRestController.java`
 [source,java]
@@ -387,27 +456,11 @@ Now let's layout the details of our REST endpoints:
 include::{book-root}/security/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
-This controller serves up the whole collection, accepts new bookmarks, and also lets you retrieve an individual bookmark. Look closely to see how each operation is done, links and all.
+The only change is removing `{userId}` from the URIs and instead letting Spring Security inject a `Principal` into the various methods.
 
-To nicely handle exceptions, the following bit of Spring MVC controller advice is registered:
+The `UserNotFoundException` and `BookmarkControllerAdvice` are also the same.
 
-`security/src/main/java/bookmarks/BookmarkControllerAdvice.java`
-[source,java]
-----
-include::{book-root}/security/src/main/java/bookmarks/BookmarkControllerAdvice.java[tag=code]
-----
-
-It translates a `UserNotFoundException` into an HTTP 404 status code (NOT FOUND) with a media type of `application/vnd.error`.
-
-The `UserNotFoundException` is simply a runtime exception:
-
-`security/src/main/java/bookmarks/UserNotFoundException.java`
-[source,java]
-----
-include::{book-root}/security/src/main/java/bookmarks/UserNotFoundException.java[tag=code]
-----
-
-Want to run it?
+Want to run things in a secured fashion?
 
 ----
 $ cd security
