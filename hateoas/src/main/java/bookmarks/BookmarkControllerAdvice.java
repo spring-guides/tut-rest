@@ -22,9 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * @author Greg Turnquist
- */
+// tag::code[]
 @ControllerAdvice
 class BookmarkControllerAdvice {
 
@@ -35,3 +33,4 @@ class BookmarkControllerAdvice {
 		return new VndErrors("error", ex.getMessage());
 	}
 }
+// end::code[]

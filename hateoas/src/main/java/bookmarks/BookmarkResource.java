@@ -20,9 +20,7 @@ import org.springframework.hateoas.ResourceSupport;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
-/**
- * @author Greg Turnquist
- */
+// tag::code[]
 class BookmarkResource extends ResourceSupport {
 
 	private final Bookmark bookmark;
@@ -40,3 +38,4 @@ class BookmarkResource extends ResourceSupport {
 		return bookmark;
 	}
 }
+// end::code[]

@@ -240,7 +240,7 @@ Next, we need to declare the details of our REST resource for bookmarks:
 `hateoas/src/main/java/bookmarks/BookmarkResource.java`
 [source,java]
 ----
-include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkResource.java[]
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkResource.java[tag=code]
 ----
 
 This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
@@ -250,12 +250,12 @@ Now let's layout the details of our REST endpoints:
 `hateoas/src/main/java/bookmarks/BookmarkRestController.java`
 [source,java]
 ----
-include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkRestController.java[]
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
 Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `BookmarkResource`, bringing along the extra goodness of HATEOAS.
 
-It also uses Spring HATEOAS's `Link` API. It let's replace this:
+It also uses Spring HATEOAS's `Link` API. It lets us replace this:
 
 [source,java]
 ----
@@ -282,7 +282,7 @@ To nicely handle exceptions, the following bit of Spring MVC controller advice i
 `hateoas/src/main/java/bookmarks/BookmarkControllerAdvice.java`
 [source,java]
 ----
-include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkControllerAdvice.java[]
+include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkControllerAdvice.java[tag=code]
 ----
 
 It translates a `UserNotFoundException` into an HTTP 404 status code (NOT FOUND) with a media type of `application/vnd.error`.
@@ -292,7 +292,7 @@ The `UserNotFoundException` is simply a runtime exception:
 `hateoas/src/main/java/bookmarks/UserNotFoundException.java`
 [source,java]
 ----
-include::{book-root}/hateoas/src/main/java/bookmarks/UserNotFoundException.java[]
+include::{book-root}/hateoas/src/main/java/bookmarks/UserNotFoundException.java[tag=code]
 ----
 
 
