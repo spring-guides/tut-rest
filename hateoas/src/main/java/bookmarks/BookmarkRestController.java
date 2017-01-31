@@ -15,7 +15,6 @@
  */
 package bookmarks;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,6 @@ class BookmarkRestController {
 
 	private final AccountRepository accountRepository;
 
-    @Autowired
     BookmarkRestController(BookmarkRepository bookmarkRepository,
                            AccountRepository accountRepository) {
         this.bookmarkRepository = bookmarkRepository;
