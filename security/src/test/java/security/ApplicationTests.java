@@ -15,35 +15,34 @@
  */
 package security;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Map;
-
+import bookmarks.Application;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.TestRestTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import bookmarks.Application;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Dave Syer
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@IntegrationTest("server.port=0")
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {Application.class, ApplicationTests.ExtraConfig.class},
+	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ApplicationTests {
 
-	@Value("${local.server.port}")
-	private int port;
+	@Autowired
+	TestRestTemplate testRestTemplate;
 
 	@Test
 	public void passwordGrant() {
@@ -51,11 +50,19 @@ public class ApplicationTests {
 		request.set("username", "jlong");
 		request.set("password", "password");
 		request.set("grant_type", "password");
-		@SuppressWarnings("unchecked")
-		Map<String, Object> token = new TestRestTemplate("android-bookmarks", "123456")
-				.postForObject("http://localhost:" + port + "/oauth/token", request,
-						Map.class);
+		Map<String, Object> token = testRestTemplate
+			.postForObject("/oauth/token", request, Map.class);
 		assertNotNull("Wrong response: " + token, token.get("access_token"));
+	}
+
+	@TestConfiguration
+	public static class ExtraConfig {
+
+		@Bean
+		RestTemplateBuilder restTemplateBuilder() {
+			return new RestTemplateBuilder()
+				.basicAuthorization("android-bookmarks", "123456");
+		}
 	}
 
 }
