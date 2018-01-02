@@ -490,3 +490,4 @@ REST is the most natural way for ubiquitous, disparate clients to communicate. I
 
 // TODO: talk about storing Access Tokens in a single store that multiple client nodes use for federated ID in mind. Then show how you can use Spring Boot's auto-configuration approach to share across an organization's services w/ no configuration apart from `@EnableAutoConfiguration`. Show an example of Spring Security OAuth persisting to Redis or something more horizontally scalable than a SQL DB.    
 
+include::https://raw.githubusercontent.com/spring-guides/getting-started-macros/master/footer.adoc[]
