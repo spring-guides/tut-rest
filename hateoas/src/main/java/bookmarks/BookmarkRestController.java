@@ -63,7 +63,7 @@ class BookmarkRestController {
 		return accountRepository.findByUsername(userId)
             .map(account -> {
                 Bookmark bookmark = bookmarkRepository
-                        .save(new Bookmark(account, input.uri, input.description));
+                        .save(new Bookmark(account, input.getUri(), input.getDescription()));
 
                 Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
 

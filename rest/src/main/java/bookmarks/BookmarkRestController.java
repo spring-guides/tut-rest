@@ -60,7 +60,7 @@ class BookmarkRestController {
 				.findByUsername(userId)
 				.map(account -> {
 					Bookmark result = bookmarkRepository.save(new Bookmark(account,
-							input.uri, input.description));
+							input.getUri(), input.getDescription()));
 
 					URI location = ServletUriComponentsBuilder
 						.fromCurrentRequest().path("/{id}")

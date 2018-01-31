@@ -85,7 +85,7 @@ public class BookmarkRestControllerTest {
     @Test
     public void userNotFound() throws Exception {
         mockMvc.perform(post("/george/bookmarks/")
-                .content(this.json(new Bookmark()))
+                .content(this.json(new Bookmark(null, null, null)))
                 .contentType(contentType))
                 .andExpect(status().isNotFound());
     }
