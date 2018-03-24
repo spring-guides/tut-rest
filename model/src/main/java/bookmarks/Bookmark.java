@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 public class Bookmark {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @JsonIgnore
