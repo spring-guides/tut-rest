@@ -37,7 +37,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 @EnableAuthorizationServer
 class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 
-	String applicationName = "bookmarks";
+	static final String APPLICATION_NAME = "bookmarks";
 
 	// This is required for password grants, which we specify below as one of the
 	// {@literal authorizedGrantTypes()}.
