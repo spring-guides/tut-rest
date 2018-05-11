@@ -335,10 +335,18 @@ Our revised service introduces a new class, `BookmarkControllerAdvice`, that use
 
 == Securing a REST Service   
 
-Thus far we've proceeded from the assumption that all clients are trustworthy, and that they should have unmitigated access to all the data. This is rarely actually the case. An open REST API is an insecure one. It's not hard to fix that, though. http://spring.io/projects/spring-security[Spring Security] provides primitives for securing application access. Fundamentally, Spring Security needs to have some idea of your application's users and their privileges. These privileges, or *authorities*, answer the question: what may an application user see,  or do?  
+Thus far we've proceeded from the assumption that all clients are trustworthy, and that they should have unmitigated access to all the data. This is rarely actually the case. An open REST API is an insecure one. It's not hard to fix that, though. http://spring.io/projects/spring-security[Spring Security] provides primitives for securing application access. Fundamentally, Spring Security needs to have some idea of your application's users and their privileges. These privileges, or *authorities*, answer the question: what may an application user see,  or do?
 
-At the heart of Spring Security is the `UserDetailsService` interface, which has *one job*: given a username, produce a `UserDetails` implementation,  `UserDetails` implementations must be able to answer questions about an account's validity, its password, its username, and its authorities (represented by instances of type `org.springframework.security.core.GrantedAuthority`). 
+The first step is to add *Spring Security* to our application and then proceed to secure our components. For starters, we must add *spring-boot-starter-security* to our build file:
 
+[source,xml,indent=0]
+----
+include::{book-root}/pom.xml[tag=security]
+----
+
+With this in place, we must proceed to define a some key ingredients, the first being a `UserDetails Service`.
+
+At the heart of Spring Security is the `UserDetailsService` interface, which has *one job*: given a username, produce a `UserDetails` implementation. `UserDetails` must be able to answer questions about an account's validity, its password, its username, and its authorities (represented by instances of type `org.springframework.security.core.GrantedAuthority`).
 
 [source,java] 
 ---- 
@@ -434,7 +442,7 @@ Next, we need to configure the means to load security details from a data store:
 include::{book-root}/security/src/main/java/bookmarks/WebSecurityConfiguration.java[tag=code]
 ----
 
-This class uses the `GlobalAuthenticationConfigurerAdapter` to build a `UserDetailsService` and hooks into our Spring Data repository.
+This class builds `UserDetailsService` and hooks into our Spring Data repository.
 
 Next, we need to lay out our OAuth2 security policy:
 

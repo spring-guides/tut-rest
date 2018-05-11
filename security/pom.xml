@@ -13,10 +13,12 @@
 
 	<dependencies>
 
+		<!-- tag::security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+		<!-- end::security -->
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
