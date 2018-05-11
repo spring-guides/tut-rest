@@ -15,6 +15,9 @@
  */
 package bookmarks;
 
+import java.net.URI;
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
-import java.util.Collection;
 
 /**
  * @author Josh Long
@@ -75,7 +75,8 @@ class BookmarkRestController {
 	@RequestMapping(method = RequestMethod.GET, value = "/{bookmarkId}")
 	Bookmark readBookmark(@PathVariable String userId, @PathVariable Long bookmarkId) {
 		this.validateUser(userId);
-		return this.bookmarkRepository.findOne(bookmarkId);
+		return this.bookmarkRepository.findById(bookmarkId)
+			.orElseThrow(() -> new BookmarkNotFoundException(bookmarkId));
 	}
 
 	private void validateUser(String userId) {

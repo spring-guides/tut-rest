@@ -275,7 +275,7 @@ Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
 return ResponseEntity.created(URI.create(forOneBookmark.getHref())).build();
 ----
 
-WARNING: Spring HATEOAS's `linkTo()` and `methodOn()` APIs assume being called in the context of a web request. That's so they access the same servlet details you just used. When invoked from outside a servlet context, an error message is reported to tip you off.
+NOTE: Spring HATEOAS's `linkTo()` and `methodOn()` APIs work best when called in the context of a web request. That's so they access the same servlet details you just used. When invoked from outside a servlet context, they fall back to serving up a relative URI.
 
 To nicely handle exceptions, the following bit of Spring MVC controller advice is registered:
 
@@ -318,7 +318,7 @@ $ mvn clean spring-boot:run
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::
 
-2016-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/hateoas/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
+2017-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/hateoas/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
 ...
 ----
 
@@ -473,11 +473,11 @@ $ mvn clean spring-boot:run
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::
 
-2016-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/security/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
-2016-11-04 11:54:21.137  INFO 73989 --- [           main] bookmarks.Application                    : No active profile set, falling back to default profiles: default
-2016-11-04 11:54:21.181  INFO 73989 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@3db919e6: startup date [Fri Nov 04 11:54:21 CDT 2016]; root of context hierarchy
-2016-11-04 11:54:22.116  WARN 73989 --- [           main] o.s.c.a.ConfigurationClassPostProcessor  : Cannot enhance @Configuration bean definition 'org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration$TokenKeyEndpointRegistrar' since its singleton instance has been created too early. The typical cause is a non-static @Bean method with a BeanDefinitionRegistryPostProcessor return type: Consider declaring such methods as 'static'.
-2016-11-04 11:54:22.392  INFO 73989 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [class org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$240a3410] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2017-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/security/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
+2017-11-04 11:54:21.137  INFO 73989 --- [           main] bookmarks.Application                    : No active profile set, falling back to default profiles: default
+2017-11-04 11:54:21.181  INFO 73989 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@3db919e6: startup date [Fri Nov 04 11:54:21 CDT 2016]; root of context hierarchy
+2017-11-04 11:54:22.116  WARN 73989 --- [           main] o.s.c.a.ConfigurationClassPostProcessor  : Cannot enhance @Configuration bean definition 'org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration$TokenKeyEndpointRegistrar' since its singleton instance has been created too early. The typical cause is a non-static @Bean method with a BeanDefinitionRegistryPostProcessor return type: Consider declaring such methods as 'static'.
+2017-11-04 11:54:22.392  INFO 73989 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [class org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$240a3410] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
 ...
 ----
 

@@ -35,5 +35,12 @@ class BookmarkControllerAdvice {
 	VndErrors userNotFoundExceptionHandler(UserNotFoundException ex) {
 		return new VndErrors("error", ex.getMessage());
 	}
+
+	@ResponseBody
+	@ExceptionHandler(BookmarkNotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	VndErrors bookmarkNotFoundExceptionHandler(BookmarkNotFoundException ex) {
+		return new VndErrors("error", ex.getMessage());
+	}
 }
 // end::code[]

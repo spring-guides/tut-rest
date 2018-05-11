@@ -18,37 +18,39 @@ package bookmarks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author Josh Long
  */
 // tag::code[]
 @Configuration
-class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
+class WebSecurityConfiguration {
 
 	@Autowired
 	AccountRepository accountRepository;
 
-	@Override
-	public void init(AuthenticationManagerBuilder auth) throws Exception {
-		auth.userDetailsService(userDetailsService());
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return NoOpPasswordEncoder.getInstance();
 	}
 
 	@Bean
 	UserDetailsService userDetailsService() {
 		return (username) -> accountRepository
-				.findByUsername(username)
-				.map(a -> new User(a.getUsername(), a.getPassword(), true, true, true, true,
-						AuthorityUtils.createAuthorityList("USER", "write")))
-				.orElseThrow(
-						() -> new UsernameNotFoundException("could not find the user '"
-								+ username + "'"));
+			.findByUsername(username)
+			.map(a -> User.builder()
+				.username(a.getUsername())
+				.password(a.getPassword())
+				.authorities("USER", "write")
+				.build())
+			.orElseThrow(
+				() -> new UsernameNotFoundException("could not find the user '"
+					+ username + "'"));
 	}
 }
 // end::code[]

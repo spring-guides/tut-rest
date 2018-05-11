@@ -15,6 +15,11 @@
  */
 package bookmarks;
 
+import java.net.URI;
+import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
@@ -24,11 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Josh Long
@@ -84,8 +84,10 @@ class BookmarkRestController {
 	@RequestMapping(method = RequestMethod.GET, value = "/{bookmarkId}")
 	BookmarkResource readBookmark(Principal principal, @PathVariable Long bookmarkId) {
 		this.validateUser(principal);
-		return new BookmarkResource(
-			this.bookmarkRepository.findOne(bookmarkId));
+
+		return this.bookmarkRepository.findById(bookmarkId)
+			.map(BookmarkResource::new)
+			.orElseThrow(() -> new BookmarkNotFoundException(bookmarkId));
 	}
 
 	private void validateUser(Principal principal) {
