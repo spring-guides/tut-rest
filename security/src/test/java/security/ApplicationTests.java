@@ -15,6 +15,10 @@
  */
 package security;
 
+import static org.junit.Assert.*;
+
+import java.util.Map;
+
 import bookmarks.Application;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,13 +28,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Dave Syer
@@ -46,12 +48,12 @@ public class ApplicationTests {
 
 	@Test
 	public void passwordGrant() {
-		MultiValueMap<String, String> request = new LinkedMultiValueMap<String, String>();
+		MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
 		request.set("username", "jlong");
 		request.set("password", "password");
 		request.set("grant_type", "password");
-		Map<String, Object> token = testRestTemplate
-			.postForObject("/oauth/token", request, Map.class);
+		request.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+		Map<String, Object> token = testRestTemplate.postForObject("/oauth/token", request, Map.class);
 		assertNotNull("Wrong response: " + token, token.get("access_token"));
 	}
 

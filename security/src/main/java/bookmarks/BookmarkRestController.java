@@ -15,19 +15,22 @@
  */
 package bookmarks;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+
 import java.net.URI;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,59 +46,73 @@ class BookmarkRestController {
 
 	private final AccountRepository accountRepository;
 
-	@Autowired
 	BookmarkRestController(BookmarkRepository bookmarkRepository,
 						   AccountRepository accountRepository) {
 		this.bookmarkRepository = bookmarkRepository;
 		this.accountRepository = accountRepository;
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
-	Resources<BookmarkResource> readBookmarks(Principal principal) {
+	@GetMapping
+	Resources<Resource<Bookmark>> readBookmarks(Principal principal) {
 		this.validateUser(principal);
 
-		List<BookmarkResource> bookmarkResourceList = bookmarkRepository
+		List<Resource<Bookmark>> bookmarkResourceList = bookmarkRepository
 			.findByAccountUsername(principal.getName()).stream()
-			.map(BookmarkResource::new)
+			.map(bookmark -> toResource(bookmark, principal))
 			.collect(Collectors.toList());
 
 		return new Resources<>(bookmarkResourceList);
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	ResponseEntity<?> add(Principal principal, @RequestBody Bookmark input) {
 		this.validateUser(principal);
 
 		return accountRepository
-				.findByUsername(principal.getName())
-				.map(account -> {
-					Bookmark bookmark = bookmarkRepository.save(
-						new Bookmark(account, input.getUri(), input.getDescription()));
-
-					Link forOneBookmark = new BookmarkResource(bookmark).getLink(Link.REL_SELF);
-
-					return ResponseEntity.created(URI
-						.create(forOneBookmark.getHref()))
-						.build();
-				})
-				.orElse(ResponseEntity.noContent().build());
+			.findByUsername(principal.getName())
+			.map(account -> ResponseEntity.created(
+				URI.create(
+					toResource(
+						this.bookmarkRepository.save(Bookmark.from(account, input)), principal)
+						.getLink(Link.REL_SELF).getHref()))
+				.build())
+			.orElse(ResponseEntity.noContent().build());
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/{bookmarkId}")
-	BookmarkResource readBookmark(Principal principal, @PathVariable Long bookmarkId) {
+	@GetMapping("/{bookmarkId}")
+	Resource<Bookmark> readBookmark(Principal principal, @PathVariable Long bookmarkId) {
 		this.validateUser(principal);
 
 		return this.bookmarkRepository.findById(bookmarkId)
-			.map(BookmarkResource::new)
+			.map(bookmark -> toResource(bookmark, principal))
 			.orElseThrow(() -> new BookmarkNotFoundException(bookmarkId));
 	}
 
 	private void validateUser(Principal principal) {
-		String userId = principal.getName();
 		this.accountRepository
-			.findByUsername(userId)
+			.findByUsername(principal.getName())
 			.orElseThrow(
-				() -> new UserNotFoundException(userId));
+				() -> new UserNotFoundException(principal.getName()));
+	}
+
+	/**
+	 * Transform a {@link Bookmark} into a {@link Resource}.
+	 *
+	 * @param bookmark
+	 * @param principal
+	 * @return
+	 */
+	private static Resource<Bookmark> toResource(Bookmark bookmark, Principal principal) {
+		return new Resource(bookmark,
+
+			// Create a raw link using a URI and a rel
+			new Link(bookmark.getUri(), "bookmark-uri"),
+
+			// Create a link to a the collection of bookmarks associated with the user
+			linkTo(methodOn(BookmarkRestController.class).readBookmarks(principal)).withRel("bookmarks"),
+
+			// Create a "self" link to a single bookmark
+			linkTo(methodOn(BookmarkRestController.class).readBookmark(principal, bookmark.getId())).withSelfRel());
 	}
 }
 // end::code[]

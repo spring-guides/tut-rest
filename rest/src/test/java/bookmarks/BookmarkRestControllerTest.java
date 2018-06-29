@@ -1,5 +1,18 @@
 package bookmarks;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.*;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,18 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.*;
 
 /**
  * @author Josh Long
@@ -92,8 +93,7 @@ public class BookmarkRestControllerTest {
 
     @Test
     public void readSingleBookmark() throws Exception {
-        mockMvc.perform(get("/" + userName + "/bookmarks/"
-                + this.bookmarkList.get(0).getId()))
+        mockMvc.perform(get("/bookmarks/" + userName + "/" + this.bookmarkList.get(0).getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.id", is(this.bookmarkList.get(0).getId().intValue())))
@@ -103,7 +103,8 @@ public class BookmarkRestControllerTest {
 
     @Test
     public void readBookmarks() throws Exception {
-        mockMvc.perform(get("/" + userName + "/bookmarks"))
+        mockMvc.perform(get("/bookmarks/" + userName))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -120,7 +121,7 @@ public class BookmarkRestControllerTest {
         String bookmarkJson = json(new Bookmark(
                 this.account, "http://spring.io", "a bookmark to the best resource for Spring news and information"));
 
-        this.mockMvc.perform(post("/" + userName + "/bookmarks")
+        this.mockMvc.perform(post("/bookmarks/" + userName)
                 .contentType(contentType)
                 .content(bookmarkJson))
                 .andExpect(status().isCreated());

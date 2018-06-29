@@ -33,7 +33,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  */
 // tag::code[]
 @RestController
-@RequestMapping("/{userId}/bookmarks")
+@RequestMapping("/bookmarks/{userId}")
 class BookmarkRestController {
 
 	private final BookmarkRepository bookmarkRepository;
@@ -60,30 +60,38 @@ class BookmarkRestController {
 		return this.accountRepository
 				.findByUsername(userId)
 				.map(account -> {
-					Bookmark result = bookmarkRepository.save(new Bookmark(account,
+					Bookmark result = this.bookmarkRepository.save(new Bookmark(account,
 							input.getUri(), input.getDescription()));
 
 					URI location = ServletUriComponentsBuilder
-						.fromCurrentRequest().path("/{id}")
-						.buildAndExpand(result.getId()).toUri();
+						.fromCurrentRequest()
+						.path("/{id}")
+						.buildAndExpand(result.getId())
+						.toUri();
 
 					return ResponseEntity.created(location).build();
 				})
 				.orElse(ResponseEntity.noContent().build());
-
 	}
 
 	@GetMapping("/{bookmarkId}")
 	Bookmark readBookmark(@PathVariable String userId, @PathVariable Long bookmarkId) {
 		this.validateUser(userId);
 		
-		return this.bookmarkRepository.findById(bookmarkId)
+		return this.bookmarkRepository
+			.findById(bookmarkId)
 			.orElseThrow(() -> new BookmarkNotFoundException(bookmarkId));
 	}
 
+	/**
+	 * Verify the {@literal userId} exists.
+	 *
+	 * @param userId
+	 */
 	private void validateUser(String userId) {
-		this.accountRepository.findByUsername(userId).orElseThrow(
-				() -> new UserNotFoundException(userId));
+		this.accountRepository
+			.findByUsername(userId)
+			.orElseThrow(() -> new UserNotFoundException(userId));
 	}
 }
 // end::code[]

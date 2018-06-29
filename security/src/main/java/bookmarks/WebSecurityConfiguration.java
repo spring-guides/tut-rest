@@ -49,8 +49,7 @@ class WebSecurityConfiguration {
 				.authorities("USER", "write")
 				.build())
 			.orElseThrow(
-				() -> new UsernameNotFoundException("could not find the user '"
-					+ username + "'"));
+				() -> new UsernameNotFoundException("could not find the user '" + username + "'"));
 	}
 }
 // end::code[]

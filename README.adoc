@@ -78,15 +78,18 @@ Each `Account` may have no, one, or many `Bookmark` entities. This is a 1:N rela
 include::{book-root}/model/src/main/java/bookmarks/Bookmark.java[]
 ----
 
-We'll use http://spring.io/guides/gs/accessing-data-jpa/[two Spring Data JPA repositories] to handle the tedious database interactions. Spring Data repositories are typically interfaces with methods supporting reading, updating, deleting, and creating records against a backend data store. Some  repositories also typically support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface. There are multiple repository implementations besides the JPA ones. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc. 
+We'll use http://spring.io/guides/gs/accessing-data-jpa/[two Spring Data JPA repositories] to handle the tedious database interactions. Spring Data repositories are typically interfaces with methods supporting reading, updating, deleting, and creating records against a backend data store. Some repositories also  support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface. There are multiple repository implementations besides the JPA ones. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc.
 
-One repository will manage our `Account` entities, called `AccountRepository`, shown below. One custom finder-method, `findByUsername`, will, _basically_, create a JPA query of the form `select a from Account a where a.username = :username`, run it (passing in the method argument `username` as a named parameter for the query), and return the results for us. Convenient!
+One repository will manage our `Account` entities, called `AccountRepository`, shown below.
+
 
 `model/src/main/java/bookmarks/AccountRepository.java`
 [source,java] 
 ----
 include::{book-root}/model/src/main/java/bookmarks/AccountRepository.java[]
 ----
+
+This repository has a custom finder-method, `findByUsername`, that _basically_ creates a JPA query of the form `select a from Account a where a.username = :username`, run it (passing in the method argument `username` as a named parameter for the query), and return the results for us. Convenient!
 
 Here's the repository for working with `Bookmark` entities.
 
@@ -105,7 +108,9 @@ Our application will use Spring Boot. A Spring Boot application is, at a minimum
 include::{book-root}/rest/src/main/java/bookmarks/Application.java[tag=runner]
 ----
 
-Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression. All the examples in this tutorial will use Java 8. There is no reason, however, that you couldn't use Java 6 or 7, simply substituting the more concise lambda syntax for a slightly more verbose anonymous inner class implementing the interface in question.
+Once started, Spring Boot will call all beans of type `CommandLineRunner`, giving them a callback. In this case, `CommandLineRunner` is an interface with one *abstract* method, which means that - in the world of Java 8 - we can substitute its definition with a lambda expression.
+
+IMPORTANT: All the examples in this tutorial will use Java 8.
 
 == HTTP is the Platform 
 
@@ -148,13 +153,13 @@ The cornerstone of our REST service is the `BookmarkRestController`:
 include::{book-root}/rest/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
-`BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@RequestMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the   `@RequestMapping` annotation on the method.
+`BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@GetMapping`/`@PostMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the Spring MVC mapping annotation on the method.
 
 `@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/{userId}/bookmarks/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb
 
 The `{userId}` and `{bookmarkId}` tokens in the path are *path variables*. They're globs, or wildcards. Spring MVC will extract those portions of the URI, and make them available as arguments of the same name that are  passed to the controller method and annotated with `@PathVariable`. For an HTTP `GET` request to the URI `/bob/bookmarks/4234`, the `@PathVariable String userId` argument will be `"bob"`, and the `@PathVariable Long bookmarkId` will be coerced to a `long` value of `4234`.
 
-These controller methods return simple POJOs - `Collection<Bookmark>`, and `Bookmark`, etc., in all but the `add` case. When an HTTP request comes in that specifies an `Accept` header, Spring MVC loops through the configured `HttpMessageConverter` until it finds one that can convert from the POJO domain model types into the content-type specified in the `Accept` header, if so configured. Spring Boot automatically wires up  an `HttpMessageConverter` that can convert generic `Object` s to http://www.json.org[JSON], absent any more specific converter. `HttpMessageConverter` s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies.
+These controller methods return simple POJOs - `Collection<Bookmark>`, and `Bookmark`, etc., in all but the `add` case. When an HTTP request comes in that specifies an `Accept` header, Spring MVC loops through the configured `HttpMessageConverter`s until it finds one that can convert from the POJO domain model types into the content-type specified in the `Accept` header, if so configured. Spring Boot automatically wires up  an `HttpMessageConverter` that can convert generic `Object` s to http://www.json.org[JSON], absent any more specific converter. `HttpMessageConverter` s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies.
 
 Use `curl` (or your browser) to see the JSON response from `http://localhost:8080/jhoeller/bookmarks`.
 
@@ -162,7 +167,7 @@ The `add` method specifies a parameter of type `Bookmark` - a POJO. Spring MVC w
 
 The `add` method accepts incoming HTTP requests, saves them and then sends back a `ResponseEntity<T>`. `ResponseEntity` is a wrapper for a response  and, optionally, HTTP headers and a status code. The `add` method sends back a `ResponseEntity` with a status code of 201 (`CREATED`) and a header (`Location`) that the client can consult to learn how the newly created record is referencable. It's a bit like extracting the just generated primary key after saving a record in the database.
 
-There are paths not taken. By default Spring Boot sets up a pretty generous collection of `HttpMessageConverter` implementations suitable for common use, but it's easy to add support for other, perhaps more compact, network-efficient formats (http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/converter/protobuf/ProtobufHttpMessageConverter.html[like the Google Protocol Buffers implementation in Spring 4.1]) using the usual Spring MVC configuration.
+There are paths not taken. By default Spring Boot sets up a pretty generous collection of `HttpMessageConverter` instances suitable for common use, but it's easy to add support for other, perhaps more compact, network-efficient formats (http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/converter/protobuf/ProtobufHttpMessageConverter.html[like the Google Protocol Buffers implementation in Spring 4.1]) using the usual Spring MVC configuration.
 
 Spring MVC natively supports file uploads via controller arguments of type `MultipartFile multipartFile`.
 
@@ -303,7 +308,7 @@ NOTE: http://stateless.co/hal_specification.html[HAL] (Hypertext Application Lan
 //spend a min to talk about HAL + ALPS
 
 The `BookmarkResource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.  
-At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/{userId}/bookmarks/{id}[`http://127.0.0.1:8080/\{userId\}/bookmarks/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@RequestMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the `@RequestMapping` metadata on a Spring MVC controller, and how to build a link based on the `@RequestMapping` metadata on a specific Spring MVC controller method.
+At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/{userId}/bookmarks/{id}[`http://127.0.0.1:8080/\{userId\}/bookmarks/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@GetMapping`/`@PostMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the Spring MVC mapping metadata on a Spring MVC controller, and how to build a link based on the Spring MVC mapping metadata on a specific Spring MVC controller method.
 
 Ready to see how this changes things?
 
