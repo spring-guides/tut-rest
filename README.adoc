@@ -240,15 +240,7 @@ include::{book-root}/hateoas/src/main/java/bookmarks/Application.java[]
 
 This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
 
-Next, we need to declare the details of our REST resource for bookmarks:
-
-`hateoas/src/main/java/bookmarks/BookmarkResource.java`
-[source,java]
-----
-include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkResource.java[tag=code]
-----
-
-This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
+Next, we need to declare the details of our REST resource for bookmarks. For this we can create new  `ResourceSupport` and add links to it.
 
 Now let's layout the details of our REST endpoints:
 
@@ -258,27 +250,7 @@ Now let's layout the details of our REST endpoints:
 include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
-Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `BookmarkResource`, bringing along the extra goodness of HATEOAS.
-
-It also uses Spring HATEOAS's `Link` API. It lets us replace this:
-
-[source,java]
-----
-URI location = ServletUriComponentsBuilder
-	.fromCurrentRequest().path("/{id}")
-	.buildAndExpand(result.getId()).toUri();
-
-return ResponseEntity.created(location).build();
-----
-
-...with this...
-
-[source,java]
-----
-Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
-
-return ResponseEntity.created(URI.create(forOneBookmark.getHref())).build();
-----
+Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `ResourceSupport` and `Resource`, bringing along the extra goodness of HATEOAS.
 
 NOTE: Spring HATEOAS's `linkTo()` and `methodOn()` APIs work best when called in the context of a web request. That's so they access the same servlet details you just used. When invoked from outside a servlet context, they fall back to serving up a relative URI.
 
@@ -307,7 +279,7 @@ NOTE: http://stateless.co/hal_specification.html[HAL] (Hypertext Application Lan
 
 //spend a min to talk about HAL + ALPS
 
-The `BookmarkResource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.  
+The `Resource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.
 At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/bookmarks/{userId}/{id}[`http://127.0.0.1:8080/bookmarks/\{userId\}/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@GetMapping`/`@PostMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the Spring MVC mapping metadata on a Spring MVC controller, and how to build a link based on the Spring MVC mapping metadata on a specific Spring MVC controller method.
 
 Ready to see how this changes things?
@@ -326,8 +298,6 @@ $ mvn clean spring-boot:run
 2017-11-04 11:54:21.135  INFO 73989 --- [           main] bookmarks.Application                    : Starting Application on retina with PID 73989 (/Users/gturnquist/src/tutorials/tut-bookmarks/hateoas/target/classes started by gturnquist in /Users/gturnquist/src/tutorials/tut-bookmarks/security)
 ...
 ----
-
-With this in place, the only remaining changes substitute  `Bookmark` types for `BookmarkResource` types. 
 
 ===  Improved Error Handling with `VndErrors`
 
@@ -458,8 +428,6 @@ include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[t
 ----
 
 With these bits, we are able to institute the policies mentioned earlier.
-
-The `BookmarkResource` class is the same as before.
 
 Having introduced security, there a few changes to make to `BookmarkRestController`:
 
