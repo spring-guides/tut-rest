@@ -316,7 +316,7 @@ The first step is to add *Spring Security* to our application and then proceed t
 
 [source,xml,indent=0]
 ----
-include::{book-root}/pom.xml[tag=security]
+include::{book-root}/security/pom.xml[tag=security]
 ----
 
 With this in place, we must proceed to define a some key ingredients, the first being a `UserDetails Service`.
@@ -366,7 +366,7 @@ include::security/src/main/resources/application-https.properties[]
 
 NOTE: This property file is only activated when the app is run when *SPRING_PROFILES_ACTIVE* configured with profile *https*.
 
-HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. To do so, we can use the JDK's *keytool* like this:
+HTTPS requires a signed certificate and a certificate password which we provide using property values. To do so, we can use the JDK's *keytool* like this:
 
 ----
 $ keytool -genkey -alias bookmarks -keyalg RSA -keystore src/main/resources/tomcat.keystore
