@@ -155,13 +155,13 @@ include::{book-root}/rest/src/main/java/bookmarks/BookmarkRestController.java[ta
 
 `BookmarkRestController` is a simple Spring MVC `@RestController`-annotated component. `@RestController` exposes the annotated bean's methods as HTTP endpoints using metadata furnished by the `@GetMapping`/`@PostMapping` annotation on each method. A method will be put into service if an incoming HTTP request matches the qualifications stipulated by the Spring MVC mapping annotation on the method.
 
-`@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/{userId}/bookmarks/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb
+`@RestController`, when it sits at the type level, provides defaults for all the methods in the type. Each individual method may override most of the type-level annotation. Some things are *contextual*. For example, the `BookmarkRestController` handles *all* requests that start with a username (like `bob`) followed by `/bookmarks`. Any methods in the type that further qualify the URI, like `readBookmark`, are *added* to the root request mapping. Thus, `readBookmark` is, in effect, mapped to `/bookmarks/{userId}/{bookmarkId}`. Methods that don't specify a path just inherit the path mapped at the type level. The `add` method responds to the URI specified at the type level, but it *only* responds to HTTP requests with the verb
 
 The `{userId}` and `{bookmarkId}` tokens in the path are *path variables*. They're globs, or wildcards. Spring MVC will extract those portions of the URI, and make them available as arguments of the same name that are  passed to the controller method and annotated with `@PathVariable`. For an HTTP `GET` request to the URI `/bob/bookmarks/4234`, the `@PathVariable String userId` argument will be `"bob"`, and the `@PathVariable Long bookmarkId` will be coerced to a `long` value of `4234`.
 
 These controller methods return simple POJOs - `Collection<Bookmark>`, and `Bookmark`, etc., in all but the `add` case. When an HTTP request comes in that specifies an `Accept` header, Spring MVC loops through the configured `HttpMessageConverter`s until it finds one that can convert from the POJO domain model types into the content-type specified in the `Accept` header, if so configured. Spring Boot automatically wires up  an `HttpMessageConverter` that can convert generic `Object` s to http://www.json.org[JSON], absent any more specific converter. `HttpMessageConverter` s work in both directions: incoming requests bodies are converted to Java objects, and Java objects are converted into HTTP response bodies.
 
-Use `curl` (or your browser) to see the JSON response from `http://localhost:8080/jhoeller/bookmarks`.
+Use `curl` (or your browser) to see the JSON response from `http://localhost:8080/bookmarks/jhoeller`.
 
 The `add` method specifies a parameter of type `Bookmark` - a POJO. Spring MVC will convert the incoming HTTP request (containing, perhaps, valid JSON) to a POJO using the appropriate `HttpMessageConverter`.
 
@@ -240,15 +240,7 @@ include::{book-root}/hateoas/src/main/java/bookmarks/Application.java[]
 
 This class contains `@SpringBootApplication`, which activate autoconfiguration, component scanning, and also allows bean definitions.
 
-Next, we need to declare the details of our REST resource for bookmarks:
-
-`hateoas/src/main/java/bookmarks/BookmarkResource.java`
-[source,java]
-----
-include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkResource.java[tag=code]
-----
-
-This extension of Spring HATEOAS's `ResourceSupport` allows us to embed a link to the entire collection of bookmarks as well an individual "self" link.
+Next, we need to declare the details of our REST resource for bookmarks. For this we can create new  `ResourceSupport` and add links to it.
 
 Now let's layout the details of our REST endpoints:
 
@@ -258,27 +250,7 @@ Now let's layout the details of our REST endpoints:
 include::{book-root}/hateoas/src/main/java/bookmarks/BookmarkRestController.java[tag=code]
 ----
 
-Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `BookmarkResource`, bringing along the extra goodness of HATEOAS.
-
-It also uses Spring HATEOAS's `Link` API. It lets us replace this:
-
-[source,java]
-----
-URI location = ServletUriComponentsBuilder
-	.fromCurrentRequest().path("/{id}")
-	.buildAndExpand(result.getId()).toUri();
-
-return ResponseEntity.created(location).build();
-----
-
-...with this...
-
-[source,java]
-----
-Link forOneBookmark = new BookmarkResource(bookmark).getLink("self");
-
-return ResponseEntity.created(URI.create(forOneBookmark.getHref())).build();
-----
+Earlier in this tutorial, we saw this controller working with `Bookmark` objects. This version now wraps them inside the `ResourceSupport` and `Resource`, bringing along the extra goodness of HATEOAS.
 
 NOTE: Spring HATEOAS's `linkTo()` and `methodOn()` APIs work best when called in the context of a web request. That's so they access the same servlet details you just used. When invoked from outside a servlet context, they fall back to serving up a relative URI.
 
@@ -307,8 +279,8 @@ NOTE: http://stateless.co/hal_specification.html[HAL] (Hypertext Application Lan
 
 //spend a min to talk about HAL + ALPS
 
-The `BookmarkResource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.  
-At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/{userId}/bookmarks/{id}[`http://127.0.0.1:8080/\{userId\}/bookmarks/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@GetMapping`/`@PostMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the Spring MVC mapping metadata on a Spring MVC controller, and how to build a link based on the Spring MVC mapping metadata on a specific Spring MVC controller method.
+The `Resource` type *wraps* a `Bookmark` and provides a nice, centralized place to keep link-building logic.
+At a minimum, a resource should provide a link to itself (usually a link whose `rel` value is `self`). We could simply write out http://127.0.0.1:8080/bookmarks/{userId}/{id}[`http://127.0.0.1:8080/bookmarks/\{userId\}/\{id\}`] (substituting the path variables for appropriate values), but this will fail as soon as we move to a different host, port, and context root. We could use the `ServletUriComponentsBuilder` to simplify some of this work. But why should we? After all, Spring MVC  _already knows_ about this URI. It's *in* the `@GetMapping`/`@PostMapping` information on every controller method! Spring HATEOAS provides the convenient static `ControllerLinkBuilder.linkTo` and `ControllerLinkBuilder.methodOn` methods to extract the URI from the controller metadata itself - a marked improvement and in keeping with the DRY (do not repeat yourself) principle.  The example shows how to build a `Link` object directly, specifying an arbitrary value for `href` (in this case, the URI for the bookmark itself), how to build a link based on the Spring MVC mapping metadata on a Spring MVC controller, and how to build a link based on the Spring MVC mapping metadata on a specific Spring MVC controller method.
 
 Ready to see how this changes things?
 
@@ -327,8 +299,6 @@ $ mvn clean spring-boot:run
 ...
 ----
 
-With this in place, the only remaining changes substitute  `Bookmark` types for `BookmarkResource` types. 
-
 ===  Improved Error Handling with `VndErrors`
 
 HATEOAS gives clients improved metadata about the service itself. We can improve the situation for our error handling, as well. HTTP status codes tell the client - broadly - that something went wrong. HTTP status codes from 400-499, for example, tell the client that the client did something wrong. HTTP status codes from 500-599 tell the client that the server did something wrong. If you know your status codes, then this can be a _start_ in understanding how to work with the API. But, we can do better. After all, before a REST client is up and running, _somebody_ needs to develop it, and useful error messages can be invaluable in understanding an API. Errors that can be handled in a consistent way are even better!
@@ -346,7 +316,7 @@ The first step is to add *Spring Security* to our application and then proceed t
 
 [source,xml,indent=0]
 ----
-include::{book-root}/pom.xml[tag=security]
+include::{book-root}/security/pom.xml[tag=security]
 ----
 
 With this in place, we must proceed to define a some key ingredients, the first being a `UserDetails Service`.
@@ -396,7 +366,7 @@ include::security/src/main/resources/application-https.properties[]
 
 NOTE: This property file is only activated when the app is run when *SPRING_PROFILES_ACTIVE* configured with profile *https*.
 
-HTTPS requires a signed certificate certificate and a certificate password which we provide using property values. To do so, we can use the JDK's *keytool* like this:
+HTTPS requires a signed certificate and a certificate password which we provide using property values. To do so, we can use the JDK's *keytool* like this:
 
 ----
 $ keytool -genkey -alias bookmarks -keyalg RSA -keystore src/main/resources/tomcat.keystore
@@ -458,8 +428,6 @@ include::{book-root}/security/src/main/java/bookmarks/OAuth2Configuration.java[t
 ----
 
 With these bits, we are able to institute the policies mentioned earlier.
-
-The `BookmarkResource` class is the same as before.
 
 Having introduced security, there a few changes to make to `BookmarkRestController`:
 
