@@ -10,7 +10,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>rest</artifactId>
+	<artifactId>evolution</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<dependencies>

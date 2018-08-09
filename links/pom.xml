@@ -10,7 +10,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>rest</artifactId>
+	<artifactId>links</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<dependencies>
@@ -25,12 +25,10 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- tag::spring-hateoas[] -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-hateoas</artifactId>
 		</dependency>
-		<!-- end::spring-hateoas[] -->
 
 		<dependency>
 			<groupId>com.h2database</groupId>
