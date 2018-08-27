@@ -9,8 +9,8 @@
 		<version>2.0.4.RELEASE</version>
 	</parent>
 
-	<groupId>bookmarks</groupId>
-	<artifactId>bookmarks</artifactId>
+	<groupId>org.springframework.guides</groupId>
+	<artifactId>tut-rest</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 

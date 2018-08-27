@@ -3,7 +3,7 @@ tags: [rest, hateoas, hypermedia, security, testing, oauth]
 projects: [spring-framework, spring-hateoas, spring-security, spring-security-oauth]
 ---
 :toc:
-:project_id: tut-bookmarks
+:project_id: tut-rest
 :icons: font
 :source-highlighter: prettify
 :javaee-api-root: http://docs.oracle.com/javaee/7/api/
