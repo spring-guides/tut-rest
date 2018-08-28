@@ -12,7 +12,7 @@ projects: [spring-framework, spring-hateoas, spring-security, spring-security-oa
 
 = Building REST Services with Spring
 
-REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume.
+REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume. 
 
 There's a much larger discussion to be had about how REST fits in the world of microservices, but - for this tutorial - let's just look at building RESTful services.
 
