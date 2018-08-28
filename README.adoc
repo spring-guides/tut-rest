@@ -966,7 +966,7 @@ subproject in a single github repo:
 
 To view more examples of using Spring HATEOAS see https://github.com/spring-projects/spring-hateoas-examples.
 
-To do some more exploring check out the following video by Spring team mate Oliver Gierke:
+To do some more exploring check out the following video by Spring teammate Oliver Gierke:
 
 video::mQkf85S9UoQ[youtube]
 
