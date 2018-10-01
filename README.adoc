@@ -159,7 +159,15 @@ include::nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java[]
 * `@ResponseStatus` says to issues an `HttpStatus.NOT_FOUND`, i.e. an *HTTP 404*.
 * The body of the advice generates the content. In this case, it gives the message of the exception.
 
-To launch the application, either right-click the `public static void main` in `PayRollApplication` and select *Run* from your IDE, or type this:
+To launch the application, either right-click the `public static void main` in `PayRollApplication` and select *Run* from your IDE, or:
+
+Spring Initializr uses maven wrapper so type this:
+
+----
+$ ./mvnw clean spring-boot:run
+----
+
+Alternatively using your installed maven version type this:
 
 ----
 $ mvn clean spring-boot:run
