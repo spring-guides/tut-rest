@@ -54,6 +54,8 @@ Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll 
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. https://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
+If you pick up IntelliJ IDEA as your IDE for this tutorial, you have to install lombok plugin. In order to see how we install plugins in IntelliJ IDEA please have a look at https://www.jetbrains.com/help/idea/managing-plugins.html[managing-plugins]. After this you have to ensure that "Enable annotation processing" checkbox is ticked under: Preferences -> Compiler -> Annotation Processors, as it is described https://stackoverflow.com/questions/14866765/building-with-lomboks-slf4j-and-intellij-cannot-find-symbol-log
+
 video::p8AdyMlpmPk[youtube]
 
 == The Story so Far...
