@@ -48,6 +48,7 @@ As we work through this tutorial, we'll use https://spring.io/projects/spring-bo
 * Web
 * JPA
 * H2
+* Lombok
 
 Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven based.)
 
