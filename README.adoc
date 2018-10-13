@@ -979,6 +979,6 @@ To view more examples of using Spring HATEOAS see https://github.com/spring-proj
 
 To do some more exploring check out the following video by Spring teammate Oliver Gierke:
 
-video::mQkf85S9UoQ[youtube]
+video::WDBUlu_lYas[youtube]
 
 include::https://raw.githubusercontent.com/spring-guides/getting-started-macros/master/footer.adoc[]
