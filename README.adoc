@@ -149,6 +149,12 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[]
 * We have routes for each operations (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
 * `EmployeeNotFoundException` is an exception used to indicate when an employee is looked up but not found.
 
+`nonrest/src/main/java/payroll/EmployeeNotFoundException.java`
+[source,java]
+----
+include::nonrest/src/main/java/payroll/EmployeeNotFoundException.java[]
+----
+
 When an `EmployeeNotFoundException` is thrown, this extra tidbit of Spring MVC configuration is used to render an *HTTP 404*:
 
 `nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java`
