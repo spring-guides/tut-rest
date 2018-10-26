@@ -750,7 +750,7 @@ include::links/src/main/java/payroll/OrderController.java[tag=main]
 * It injects both an `OrderRepository` as well as a (not yet built) `OrderResourceAssembler`.
 * The first two Spring MVC routes handle the aggregate root as well as a single item `Order` resource request.
 * The third Spring MVC route handles creating new orders, by starting them in the `IN_PROGRESS` state.
-* All the controller methods return one of Spring HATEOAS's `ResourceSupport` subclasses to properly render hypermedia (or an wrapper around such a type).
+* All the controller methods return one of Spring HATEOAS's `ResourceSupport` subclasses to properly render hypermedia (or a wrapper around such a type).
 
 Before building the `OrderResourceAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
 `Status.IN_PROGRESS`, `Status.COMPLETED`, and `Status.CANCELLED`. A natural thing when serving up such data to clients is to
