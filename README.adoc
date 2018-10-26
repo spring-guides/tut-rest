@@ -696,7 +696,7 @@ that they can properly migrate existing content into the new columns.
 You are now ready for an upgrade that will NOT disturb existing clients while newer clients can take advantage of the enhancements!
 
 By the way, are you worried about sending too much information over the wire? In some systems where every byte counts,
-evolution of APIs may need to take a backseat. But don't pursue such premature optimization until until you measure.
+evolution of APIs may need to take a backseat. But don't pursue such premature optimization until you measure.
 
 == Building links into your REST API
 
