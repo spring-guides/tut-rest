@@ -438,7 +438,7 @@ include::evolution/src/main/java/payroll/EmployeeResourceAssembler.java[]
 This simple interface has one method: `toResource()`. It is based on converting a non-resource object (`Employee`) into a resource-based
 object (`Resource<Employee>`).
 
-All the code you saw easiler in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
+All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
 will be automatically created when the starts.
 
 NOTE: Spring HATEOAS's abstract base class for all resources is `ResourceSupport`. But for simplicity, I recommend using `Resource<T>`
