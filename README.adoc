@@ -438,7 +438,7 @@ include::evolution/src/main/java/payroll/EmployeeResourceAssembler.java[]
 This simple interface has one method: `toResource()`. It is based on converting a non-resource object (`Employee`) into a resource-based
 object (`Resource<Employee>`).
 
-All the code you saw easiler in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
+All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
 will be automatically created when the starts.
 
 NOTE: Spring HATEOAS's abstract base class for all resources is `ResourceSupport`. But for simplicity, I recommend using `Resource<T>`
@@ -696,7 +696,7 @@ that they can properly migrate existing content into the new columns.
 You are now ready for an upgrade that will NOT disturb existing clients while newer clients can take advantage of the enhancements!
 
 By the way, are you worried about sending too much information over the wire? In some systems where every byte counts,
-evolution of APIs may need to take a backseat. But don't pursue such premature optimization until until you measure.
+evolution of APIs may need to take a backseat. But don't pursue such premature optimization until you measure.
 
 == Building links into your REST API
 
@@ -705,7 +705,7 @@ So far, you've built an evolvable API with bare bones links. To grow your API an
 
 What does that mean? In this section, you'll explore it in detail.
 
-Business logic inevitably builds up rules that involve processes. The risk of such systems if we often carry such server-side
+Business logic inevitably builds up rules that involve processes. The risk of such systems is we often carry such server-side
 logic into clients and build up strong coupling. REST is about breaking down such connections and minimizing such coupling.
 
 To show how to cope with state changes without triggering breaking changes in clients, imagine adding a system that fulfills orders.
@@ -750,7 +750,7 @@ include::links/src/main/java/payroll/OrderController.java[tag=main]
 * It injects both an `OrderRepository` as well as a (not yet built) `OrderResourceAssembler`.
 * The first two Spring MVC routes handle the aggregate root as well as a single item `Order` resource request.
 * The third Spring MVC route handles creating new orders, by starting them in the `IN_PROGRESS` state.
-* All the controller methods return one of Spring HATEOAS's `ResourceSupport` subclasses to properly render hypermedia (or an wrapper around such a type).
+* All the controller methods return one of Spring HATEOAS's `ResourceSupport` subclasses to properly render hypermedia (or a wrapper around such a type).
 
 Before building the `OrderResourceAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
 `Status.IN_PROGRESS`, `Status.COMPLETED`, and `Status.CANCELLED`. A natural thing when serving up such data to clients is to
