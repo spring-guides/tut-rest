@@ -165,7 +165,7 @@ include::nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java[]
 
 * `@ResponseBody` signals that this advice is rendered straight into the response body.
 * `@ExceptionHandler` configures the advice to only respond if an `EmployeeNotFoundException` is thrown.
-* `@ResponseStatus` says to issues an `HttpStatus.NOT_FOUND`, i.e. an *HTTP 404*.
+* `@ResponseStatus` says to issue an `HttpStatus.NOT_FOUND`, i.e. an *HTTP 404*.
 * The body of the advice generates the content. In this case, it gives the message of the exception.
 
 To launch the application, either right-click the `public static void main` in `PayRollApplication` and select *Run* from your IDE, or:
