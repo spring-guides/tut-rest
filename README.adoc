@@ -477,7 +477,7 @@ Thanks to Java 8 method references, it's super easy to plug it in and simplify y
 
 IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario, adding hypermedia to your service without hard coding anything.
 
-At this stage, you've create a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL
+At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL
 can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
 
 But that is not the only thing needed to build a truly RESTful service with Spring.
@@ -543,7 +543,7 @@ Notice how this format shows `firstName`, `lastName`, AND `name`? While it sport
 both old and new clients. That means you can upgrade the server without requiring clients upgrade at the same time. A good move
 that should reduce downtime.
 
-And not only should you show this information in both the "old way" and the "new way". You should also process incoming data both ways.
+And not only should you show this information in both the "old way" and the "new way", you should also process incoming data both ways.
 
 How? Simple. Like this:
 
@@ -902,7 +902,7 @@ $ curl -v -X DELETE http://localhost:8080/orders/4/cancel
 This response shows an *HTTP 200* status code indicating it was successful. The response HAL document shows that order in its
 new state (`CANCELLED`). And the state-altering links gone.
 
-If you try the same operate again...
+If you try the same operation again...
 
 ----
 $ curl -v -X DELETE http://localhost:8080/orders/4/cancel
