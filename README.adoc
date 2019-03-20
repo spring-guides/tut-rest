@@ -6,7 +6,7 @@ projects: [spring-framework, spring-hateoas, spring-security, spring-security-oa
 :project_id: tut-rest
 :icons: font
 :source-highlighter: prettify
-:javaee-api-root: http://docs.oracle.com/javaee/7/api/
+:javaee-api-root: https://docs.oracle.com/javaee/7/api/
 :image-width: 500
 :book-root: .
 
@@ -43,7 +43,7 @@ we will use the Spring portfolio to build a RESTful service while leveraging the
 
 == Getting Started
 
-As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to http://start.spring.io/[Spring Initializr] and select the following:
+As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and select the following:
 
 * Web
 * JPA
