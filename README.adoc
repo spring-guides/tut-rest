@@ -65,7 +65,7 @@ Let's start off with the simplest thing we can construct. In fact, to make it as
 Our example models a simple payroll service that manages the employees of a company. Simply put, you need to store employee objects in an H2 in-memory database, and access them via JPA. This will be wrapped with a Spring MVC layer to access remotely.
 
 `nonrest/src/main/java/payroll/Employee.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/Employee.java[]
 ----
@@ -83,7 +83,7 @@ Spring Data repositories are interfaces with methods supporting reading, updatin
 NOTE: There are multiple repository implementations besides JPA. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc. For this tutorial, we'll stick with JPA.
 
 `nonrest/src/main/java/payroll/EmployeeRepository.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/EmployeeRepository.java[]
 ----
@@ -100,7 +100,7 @@ Spring Data's https://docs.spring.io/spring-data/jpa/docs/current/reference/html
 Believe it or not, this is enough to launch an application! A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@SpringBootApplication` annotation. This tells Spring Boot to help out, wherever possible.
 
 `nonrest/src/main/java/payroll/PayrollApplication.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/PayrollApplication.java[]
 ----
@@ -111,7 +111,7 @@ into the details of Spring Boot in this tutorial, but in essence, it will fire u
 Nevertheless, an application with no data isn't very interesting, so let's preload it. The follow class will get loaded automatically by Spring:
 
 `nonrest/src/main/java/payroll/LoadDatabase.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/LoadDatabase.java[]
 ----
@@ -139,7 +139,7 @@ This isn't the *whole* log, but just the key bits of preloading data. (Indeed, c
 To wrap your repository with a web layer, you must turn to Spring MVC. Thanks to Spring Boot, there is little in infrastructure to code. Instead, we can focus on actions:
 
 `nonrest/src/main/java/payroll/EmployeeController.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/EmployeeController.java[]
 ----
@@ -150,7 +150,7 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[]
 * `EmployeeNotFoundException` is an exception used to indicate when an employee is looked up but not found.
 
 `nonrest/src/main/java/payroll/EmployeeNotFoundException.java`
-[source,java]
+[source,java,tabsize=2]
 ----
 include::nonrest/src/main/java/payroll/EmployeeNotFoundException.java[]
 ----
@@ -158,7 +158,7 @@ include::nonrest/src/main/java/payroll/EmployeeNotFoundException.java[]
 When an `EmployeeNotFoundException` is thrown, this extra tidbit of Spring MVC configuration is used to render an *HTTP 404*:
 
 `nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java`
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java[]
 ----
@@ -308,7 +308,7 @@ This tiny library will give us the constructs to define a RESTful service and th
 
 A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc5988[links] to relevant operations. To make your controller more RESTful, add links like this:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
@@ -352,7 +352,7 @@ there is a "self" link (kind of like a `this` statement in code) along with a li
 
 To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
@@ -430,7 +430,7 @@ link to the aggregate root was shown twice. If that raised your concern, good! T
 Simply put, you need to define a function that converts `Employee` objects to `Resource<Employee>` objects. While you could easily
 code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `ResourceAssembler` interface.
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeResourceAssembler.java[]
 ----
@@ -446,7 +446,7 @@ as your mechanism to easily wrap all POJOs as resources.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor. Then the
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor]
 
@@ -457,7 +457,7 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor
 
 From here, you can use it in the single-item employee method:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
@@ -467,7 +467,7 @@ Maybe that doesn't look like much?
 
 Applying the same thing in the aggregate root controller method is more impressive:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
@@ -548,7 +548,7 @@ And not only should you show this information in both the "old way" and the "new
 How? Simple. Like this:
 
 .Employee record that handles both "old" and "new" clients
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/Employee.java[]
 ----
@@ -564,7 +564,7 @@ to come up with a set of transforms for most scenarios, ehh?
 
 Another fine tuning is to ensure each of your REST methods returns a proper response. Update the POST method like this:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=post]
 ----
@@ -616,7 +616,7 @@ A hypermedia powered client could opt to "surf" to this new resource and proceed
 
 The PUT controller method needs similar tweaks:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=put]
 ----
@@ -669,7 +669,7 @@ $ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -
 
 That employee resource has now been updated and the location URI sent back. Finally, update the DELETE operation suitably:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=delete]
 ----
@@ -712,7 +712,7 @@ To show how to cope with state changes without triggering breaking changes in cl
 
 As a first step, define an `Order` record:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/Order.java[]
 ----
@@ -723,7 +723,7 @@ include::links/src/main/java/payroll/Order.java[]
 Orders must go through a certain series of state transitions from the time a customer submits an order and it is either
 fulfilled or cancelled. This can be captured as a Java `enum`:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/Status.java[]
 ----
@@ -732,7 +732,7 @@ This `enum` captures the various states an `Order` can occupy. For this tutorial
 
 To support interacting with orders in the database, you must define a corresponding Spring Data repository:
 
-[source,java]
+[source,java,tabsize=2]
 ----
 interface OrderRepository extends JpaRepository<Order, Long> {
 }
@@ -740,7 +740,7 @@ interface OrderRepository extends JpaRepository<Order, Long> {
 
 With this in place, you can now define a basic `OrderController`:
 
-[source,java]
+[source,java,tabsize=2]
 ----
 include::links/src/main/java/payroll/OrderController.java[tag=main]
 }
@@ -773,7 +773,7 @@ out of sync on the logic of state transitions.
 Having already embraced the concept of Spring HATEOAS `ResourceAssembler` components, putting such logic in the `OrderResourceAssembler`
 would be the perfect place to capture this business rule:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/OrderResourceAssembler.java[]
 ----
@@ -788,7 +788,7 @@ opens the door to tuning the flow of order fulfillment without breaking clients 
 
 To round out order fulfillment, add the following to the `OrderController` for the `cancel` operation:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/OrderController.java[tag=delete]
 ----
@@ -798,7 +798,7 @@ a hypermedia-supporting error container. If the transition is indeed valid, it t
 
 And add this to the `OrderController` as well for order completion:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/OrderController.java[tag=complete]
 ----
@@ -807,7 +807,7 @@ This implements similar logic to prevent an `Order` status from being completed 
 
 By adding a little extra initialization code to `LoadDatabase`:
 
-[source,java,indent=0]
+[source,java,tabsize=2,indent=0]
 ----
 include::links/src/main/java/payroll/LoadDatabase.java[tag=order]
 ----
