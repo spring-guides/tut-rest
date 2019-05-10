@@ -444,7 +444,7 @@ This simple interface has one method: `toResource()`. It is based on converting 
 object (`Resource<Employee>`).
 
 All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
-will be automatically created when the starts.
+will be automatically created when the app starts.
 
 NOTE: Spring HATEOAS's abstract base class for all resources is `ResourceSupport`. But for simplicity, I recommend using `Resource<T>`
 as your mechanism to easily wrap all POJOs as resources.
