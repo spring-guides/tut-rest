@@ -316,6 +316,13 @@ A critical ingredient to any RESTful service is adding https://tools.ietf.org/ht
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 
+.Relevant import statements
+[source,java,tabsize=2,indent=0]
+----
+include::rest/src/main/java/payroll/EmployeeController.java[tag=hateoas-imports]
+----
+
+
 This is very similar to what we had before, but a few things have changed:
 
 * The return type of the method has changed from `Employee` to `Resource<Employee>`. `Resource<T>` is a generic container from Spring HATEOAS that includes not only the data but a collection of links.
