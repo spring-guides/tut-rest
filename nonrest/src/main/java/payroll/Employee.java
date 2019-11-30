@@ -14,7 +14,7 @@ class Employee {
 	private String name;
 	private String role;
 
-	Employee() {}
+	public Employee() {}
 
 	Employee(String name, String role) {
 		this.name = name;
