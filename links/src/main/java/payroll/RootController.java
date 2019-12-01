@@ -1,8 +1,8 @@
 package payroll;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 class RootController {
 
 	@GetMapping
-	ResourceSupport index() {
-		ResourceSupport rootResource = new ResourceSupport();
-		rootResource.add(linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
-		rootResource.add(linkTo(methodOn(OrderController.class).all()).withRel("orders"));
-		return rootResource;
+	RepresentationModel index() {
+		RepresentationModel rootRepresentationModel = new RepresentationModel();
+		rootRepresentationModel.add(linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
+		rootRepresentationModel.add(linkTo(methodOn(OrderController.class).all()).withRel("orders"));
+		return rootRepresentationModel;
 	}
 
 }
