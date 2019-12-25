@@ -307,7 +307,7 @@ Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring 
 include::rest/pom.xml[tag=spring-hateoas]
 ----
 
-This tiny library will give us the constructs to define a RESTful service and then render it in an acceptible format for client consumption.
+This tiny library will give us the constructs to define a RESTful service and then render it in an acceptable format for client consumption.
 
 A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc5988[links] to relevant operations. To make your controller more RESTful, add links like this:
 
