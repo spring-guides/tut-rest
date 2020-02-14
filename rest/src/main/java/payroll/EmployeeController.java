@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // tag::hateoas-imports[]
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 // end::hateoas-imports[]
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,15 +31,15 @@ class EmployeeController {
 
 	// tag::get-aggregate-root[]
 	@GetMapping("/employees")
-	Resources<Resource<Employee>> all() {
+	CollectionModel<EntityModel<Employee>> all() {
 
-		List<Resource<Employee>> employees = repository.findAll().stream()
-			.map(employee -> new Resource<>(employee,
+		List<EntityModel<Employee>> employees = repository.findAll().stream()
+			.map(employee -> new EntityModel<>(employee,
 				linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
 				linkTo(methodOn(EmployeeController.class).all()).withRel("employees")))
 			.collect(Collectors.toList());
 		
-		return new Resources<>(employees,
+		return new CollectionModel<>(employees,
 			linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
 	}
 	// end::get-aggregate-root[]
@@ -53,12 +53,12 @@ class EmployeeController {
 
 	// tag::get-single-item[]
 	@GetMapping("/employees/{id}")
-	Resource<Employee> one(@PathVariable Long id) {
+	EntityModel<Employee> one(@PathVariable Long id) {
 		
 		Employee employee = repository.findById(id)
 			.orElseThrow(() -> new EmployeeNotFoundException(id));
 		
-		return new Resource<>(employee,
+		return new EntityModel<>(employee,
 			linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
 			linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
 	}
