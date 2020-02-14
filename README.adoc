@@ -290,11 +290,11 @@ In fact, what we have built so far is better described as *RPC* (*Remote Procedu
 This statement of Roy Fielding may further lend a clue to the difference between *REST* and *RPC*:
 
 [quote, Roy Fielding, https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven]
-----
+____
 I am getting frustrated by the number of people calling any HTTP-based interface a REST API. Today’s example is the SocialSite REST API. That is RPC. It screams RPC. There is so much coupling on display that it should be given an X rating.
 
 What needs to be done to make the REST architectural style clear on the notion that hypertext is a constraint? In other words, if the engine of application state (and hence the API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API. Period. Is there some broken manual somewhere that needs to be fixed?
-----
+____
 
 The side effect of NOT including hypermedia in our representations is that clients MUST hard code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It's a signal that our JSON output needs a little help.
 
@@ -325,7 +325,7 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=hateoas-imports]
 
 This is very similar to what we had before, but a few things have changed:
 
-* The return type of the method has changed from `Employee` to `Resource<Employee>`. `Resource<T>` is a generic container from Spring HATEOAS that includes not only the data but a collection of links.
+* The return type of the method has changed from `Employee` to `EntityModel<Employee>`. `EntityModel<T>` is a generic container from Spring HATEOAS that includes not only the data but a collection of links.
 * `linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel()` asks that Spring HATEOAS build a link to the `EmployeeController` 's `one()` method, and flag it as a https://www.iana.org/assignments/link-relations/link-relations.xhtml[self] link.
 * `linkTo(methodOn(EmployeeController.class).all()).withRel("employees")` asks Spring HATEOAS to build a link to the aggregate root, `all()`, and call it "employees".
 
@@ -370,14 +370,14 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-ro
 
 Wow! That method, which used to just be `repository.findAll()` has grown big! Let's unpack it.
 
-`Resources<>` is another Spring HATEOAS container aimed at encapsulating collections. It, too, also lets you include links.
-Don't let that first statement slip by. When does "encapsulating collections" mean? Collections of employees?
+`CollectionModel<>` is another Spring HATEOAS container aimed at encapsulating collections. It, too, also lets you include links.
+Don't let that first statement slip by. What does "encapsulating collections" mean? Collections of employees?
 
 Not quite.
 
 Since we're talking REST, it should encapsulate collections of *employee resources*.
 
-That's why you fetch all the employees, but then transform them into a list of `Resource<Employee>` objects. (Thanks Java 8 Stream API!)
+That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Stream API!)
 
 If you restart the application and fetch the aggregate root, you can see what this looks like.
 
@@ -438,25 +438,25 @@ clients can STILL find and interact with things.
 Did you notice the repetition in single employee link creation? The code to provide a single link to an employee as well as an "employees"
 link to the aggregate root was shown twice. If that raised your concern, good! There's a solution.
 
-Simply put, you need to define a function that converts `Employee` objects to `Resource<Employee>` objects. While you could easily
-code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `ResourceAssembler` interface.
+Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily
+code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `RepresentationModelAssembler` interface.
 
 .evolution/src/main/java/payroll/EmployeeResourceAssembler.java
 [source,java,tabsize=2,indent=0]
 ----
-include::evolution/src/main/java/payroll/EmployeeResourceAssembler.java[]
+include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
 ----
 
-This simple interface has one method: `toResource()`. It is based on converting a non-resource object (`Employee`) into a resource-based
-object (`Resource<Employee>`).
+This simple interface has one method: `toModel()`. It is based on converting a non-resource object (`Employee`) into a resource-based
+object (`EntityModel<Employee>`).
 
 All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
 will be automatically created when the app starts.
 
-NOTE: Spring HATEOAS's abstract base class for all resources is `ResourceSupport`. But for simplicity, I recommend using `Resource<T>`
+NOTE: Spring HATEOAS's abstract base class for all resources is `RepresentationModel`. But for simplicity, I recommend using `EntityModel<T>`
 as your mechanism to easily wrap all POJOs as resources.
 
-To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor. Then the
+To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
 .Injecting EmployeeResourceAssembler into the controller
 [source,java,tabsize=2,indent=0]
@@ -476,7 +476,7 @@ From here, you can use it in the single-item employee method:
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 
-This code is almost the same, except instead of creating the `Resource<Employee>` instance here, you delegate it to the assembler.
+This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you delegate it to the assembler.
 Maybe that doesn't look like much?
 
 Applying the same thing in the aggregate root controller method is more impressive:
@@ -487,21 +487,18 @@ Applying the same thing in the aggregate root controller method is more impressi
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
 
-The code is, again, almost the same, however you get to replace all that `Resource<Employee>` creation logic with `map(assembler::toResource)`.
+The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`.
 Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
 
 IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario, adding hypermedia to your service without hard coding a thing.
 
-At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL
-can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
+At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
 
 But that is not the only thing needed to build a truly RESTful service with Spring.
 
 == Evolving REST APIs
 
-With one additional library and a few lines of extra code, you have added hypermedia to your application. But that is not the only
-thing needed to make your service RESTful. An important facet of REST is the fact that it's neither a technology stack nor a single
-standard.
+With one additional library and a few lines of extra code, you have added hypermedia to your application. But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact that it's neither a technology stack nor a single standard.
 
 REST is a collection of architectural constraints that when adopted make your application much more resilient. A key factor of
 resilience is that when you make upgrades to your services, your clients don't suffer from downtime.
@@ -586,8 +583,8 @@ Another fine tuning is to ensure each of your REST methods returns a proper resp
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=post]
 ----
 
-* The new `Employee` object is saved as before. But the resulting object is wrapped using the `EmployeeResourceAssembler`.
-* Spring MVC's `ResponseEntity` is used to create an *HTTP 201 Created* status message. This type of response typically includes a *Location* response header, and we use the newly formed link.
+* The new `Employee` object is saved as before. But the resulting object is wrapped using the `EmployeeModelAssembler`.
+* Spring MVC's `ResponseEntity` is used to create an *HTTP 201 Created* status message. This type of response typically includes a *Location* response header, and we use the URI derived from the model's self-related link.
 * Additionally, return the resource-based version of the saved object.
 
 With this tweak in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
@@ -639,15 +636,12 @@ The PUT controller method needs similar tweaks:
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=put]
 ----
 
-The `Employee` object built from the `save()` operation is then wrapped using the `EmployeeResourceAssembler` into a `Resource<Employee>` object.
+The `Employee` object built from the `save()` operation is then wrapped using the `EmployeeModelAssembler` into a `EntityModel<Employee>` object.
 Since we want a more detailed HTTP response code than *200 OK*, we will use Spring MVC's `ResponseEntity` wrapper. It has a handy
 static method `created()` where we can plug in the resource's URI.
 
-By grabbing the `resource` you can fetch it's "self" link via the `getId()` method call. This method yields a `Link` which you can
+By grabbing the `resource` you can fetch it's "self" link via the `getRequiredLink()` method call using the 'SELF' relation parameter. This method yields a `Link` which you can
 turn into a Java `URI`. To tie things up nicely, you inject the `resource` itself into the `body()` method.
-
-IMPORTANT: In REST, a resource's *id* is the URI of that resource. Hence, Spring HATEOAS doesn't hand you the `id` field of the underlying
-data type (which no client should), but instead, the URI for it. And don't confuse `ResourceSupport.getId()` with `Employee.getId()`.
 
 It's debatable if *HTTP 201 Created* carries the right semantics since we aren't necessarily "creating" a new resource. But it comes pre-loaded with a *Location* response header, so run with it.
 
@@ -770,12 +764,12 @@ include::links/src/main/java/payroll/OrderController.java[tag=main]
 ----
 
 * It contains the same REST controller setup as the controllers you've built so far.
-* It injects both an `OrderRepository` as well as a (not yet built) `OrderResourceAssembler`.
+* It injects both an `OrderRepository` as well as a (not yet built) `OrderModelAssembler`.
 * The first two Spring MVC routes handle the aggregate root as well as a single item `Order` resource request.
 * The third Spring MVC route handles creating new orders, by starting them in the `IN_PROGRESS` state.
-* All the controller methods return one of Spring HATEOAS's `ResourceSupport` subclasses to properly render hypermedia (or a wrapper around such a type).
+* All the controller methods return one of Spring HATEOAS's `RepresentationModel` subclasses to properly render hypermedia (or a wrapper around such a type).
 
-Before building the `OrderResourceAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
+Before building the `OrderModelAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
 `Status.IN_PROGRESS`, `Status.COMPLETED`, and `Status.CANCELLED`. A natural thing when serving up such data to clients is to
 let the clients make the decision on what it can do based on this payload.
 
@@ -793,13 +787,13 @@ dynamically add them to the list of links. Clients only need show users the corr
 This decouples clients from having to know WHEN such actions are valid, reducing the risk of the server and its clients getting
 out of sync on the logic of state transitions.
 
-Having already embraced the concept of Spring HATEOAS `ResourceAssembler` components, putting such logic in the `OrderResourceAssembler`
+Having already embraced the concept of Spring HATEOAS `ResourceAssembler` components, putting such logic in the `OrderModelAssembler`
 would be the perfect place to capture this business rule:
 
-.links/src/main/java/payroll/OrderResourceAssembler.java
+.links/src/main/java/payroll/OrderModelAssembler.java
 [source,java,tabsize=2,indent=0]
 ----
-include::links/src/main/java/payroll/OrderResourceAssembler.java[]
+include::links/src/main/java/payroll/OrderModelAssembler.java[]
 ----
 
 This resource assembler always includes the *self* link to the single-item resource as well as a link back to the aggregate root.
@@ -996,7 +990,7 @@ Instead, the following tactics help make your services less likely to break exis
 * Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients have a path onto the newer features.
 * Use links, not payload data, to instruct clients when various state-driving operations are available.
 
-It may appear to be a bit of effort to build up `ResourceAssembler` implementations for each resource type and to use these components
+It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each resource type and to use these components
 in all of your controllers. But this extra bit of server-side setup (made easy thanks to Spring HATEOAS) can ensure the
 clients you control (and more importantly, those you don't) can upgrade with ease as you evolve your API.
 
