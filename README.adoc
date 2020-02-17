@@ -442,7 +442,7 @@ link to the aggregate root was shown twice. If that raised your concern, good! T
 Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily
 code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `RepresentationModelAssembler` interface.
 
-.evolution/src/main/java/payroll/EmployeeResourceAssembler.java
+.evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
@@ -459,7 +459,7 @@ as your mechanism to easily wrap all POJOs as resources.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
-.Injecting EmployeeResourceAssembler into the controller
+.Injecting EmployeeModelAssembler into the controller
 [source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor]
@@ -785,7 +785,7 @@ dynamically add them to the list of links. Clients only need show users the corr
 This decouples clients from having to know WHEN such actions are valid, reducing the risk of the server and its clients getting
 out of sync on the logic of state transitions.
 
-Having already embraced the concept of Spring HATEOAS `ResourceAssembler` components, putting such logic in the `OrderModelAssembler`
+Having already embraced the concept of Spring HATEOAS `RepresentationModelAssembler` components, putting such logic in the `OrderModelAssembler`
 would be the perfect place to capture this business rule:
 
 .links/src/main/java/payroll/OrderModelAssembler.java
