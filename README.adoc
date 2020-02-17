@@ -296,6 +296,7 @@ I am getting frustrated by the number of people calling any HTTP-based interface
 What needs to be done to make the REST architectural style clear on the notion that hypertext is a constraint? In other words, if the engine of application state (and hence the API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API. Period. Is there some broken manual somewhere that needs to be fixed?
 ____
 
+
 The side effect of NOT including hypermedia in our representations is that clients MUST hard code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It's a signal that our JSON output needs a little help.
 
 Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add this to your build:
@@ -636,13 +637,10 @@ The PUT controller method needs similar tweaks:
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=put]
 ----
 
-The `Employee` object built from the `save()` operation is then wrapped using the `EmployeeModelAssembler` into a `EntityModel<Employee>` object.
+The `Employee` object built from the `save()` operation is then wrapped using the `EmployeeModelAssembler` into an `EntityModel<Employee>` object. Using the `getRequiredLink()` method, you can retrieve the `Link` created by the `EmployeeModelAssembler` with a `SELF` rel.  This method returns a `Link` which must be turned into a `URI` with the `toUri` method.
+
 Since we want a more detailed HTTP response code than *200 OK*, we will use Spring MVC's `ResponseEntity` wrapper. It has a handy
 static method `created()` where we can plug in the resource's URI.
-
-By grabbing the `resource` you can fetch it's "self" link via the `getRequiredLink()` method call using the 'SELF' relation parameter. This method yields a `Link` which you can
-turn into a Java `URI`. To tie things up nicely, you inject the `resource` itself into the `body()` method.
-
 It's debatable if *HTTP 201 Created* carries the right semantics since we aren't necessarily "creating" a new resource. But it comes pre-loaded with a *Location* response header, so run with it.
 
 ----
