@@ -240,10 +240,15 @@ It's not hard to show the currently coded interactions...
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
-[CAUTION]
-====
-If you are using Windows Command Prompt to issue cURL commands, chances are it won't work properly.
-You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
+[CAUTION] 
+.Error 415 anyone?
+==== 
+If you're using Windows's Command Prompt and you got https://gist.github.com/UgmaDevelopment/abfea553b77312d156111769bf2c05ab[an error] on the previous command, you should either:
+
+
+* not use Command Prompt in this tutorial--you'll save yourself some trouble and avoid the problem by https://www.atlassian.com/git/tutorials/git-bash[using bash] instead
+or
+* https://stackoverflow.com/a/22597714/5432315[escape your double quotes]
 ====
 
 Creates a new `Employee` record, and then sends the content back to us:
@@ -339,11 +344,22 @@ This is very similar to what we had before, but a few things have changed:
 
 What do we mean by "build a link"? One of Spring HATEOAS's core types is `Link`. It includes a *URI* and a *rel* (relation).
 Links are what empower the web. Before the World Wide Web, other document systems would render information or links, but
-it was the linking of documents WITH data that stitched the web together.
+it was the linking of documents WITH this kind of relationship metadata that stitched the web together.
 
 Roy Fielding encourages building APIs with the same techniques that made the web successful, and links are one of them.
 
-If you restart the application and query the employee record of *Bilbo*, you'll get a slightly different response than earlier:
+If you restart the application and query the employee record of _Bilbo_, you'll get a slightly different response than earlier:
+
+[TIP] 
+.Curling prettier
+==== 
+When your curl output gets more complex it can become hard to read. Use this or https://stackoverflow.com/q/27238411/5432315[other tips] to prettify the json returned by curl:
+....
+# The indicated part pipes the output to python and asks it to make your JSON pretty.
+#                                  v------------------v 
+curl -v localhost:8080/employees/1 | python -mjson.tool
+....
+====
 
 .RESTful representation of a single employee
 [source,javascript]
@@ -522,6 +538,7 @@ customers, such strategies are not as effective.
 SOAP-based services and CORBA-based services were incredibly brittle. It was hard to roll out a server that could support both old and new
 clients. With REST-based practices, it's much easier. Especially using the Spring stack.
 
+=== Supporting changes to the API
 Imagine this design problem: You've rolled out a system with this `Employee` -based record. The system is a major hit. You've sold
 your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
 
@@ -583,7 +600,17 @@ This class is very similar to the previous version of `Employee`. Let's go over 
 Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But it's surely not impossible
 to come up with a set of transforms for most scenarios, ehh?
 
-Another fine tuning is to ensure each of your REST methods returns a proper response. Update the POST method like this:
+[IMPORTANT] 
+==== 
+Don't forget to go and change how you preload your database (in `LoadDatabase`) to use this new constructor.
+----
+include::evolution/src/main/java/payroll/LoadDatabase.java[tag=new_constructor]
+----
+====
+
+
+==== Proper Responses
+Another step in the right direction involves ensuring that each of your REST methods returns a proper response. Update the POST method like this:
 
 .POST that handles "old" and "new" client requests
 [source,java,tabsize=2,indent=0]
@@ -595,7 +622,7 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=post]
 * Spring MVC's `ResponseEntity` is used to create an *HTTP 201 Created* status message. This type of response typically includes a *Location* response header, and we use the URI derived from the model's self-related link.
 * Additionally, return the resource-based version of the saved object.
 
-With this tweak in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
+With these tweaks in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
 
 ----
 $ curl -v -X POST localhost:8080/employees -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
@@ -830,15 +857,17 @@ include::links/src/main/java/payroll/OrderController.java[tag=complete]
 
 This implements similar logic to prevent an `Order` status from being completed unless in the proper state.
 
-By adding a little extra initialization code to `LoadDatabase`:
+// The &#8203; entity is a zero-width space and seems to allow us to have the 's' right next to the `Order`; having no space after breaks the inline code formatting. 
+
+Let's update `LoadDatabase` to pre-load some `Order`&#8203;s along with the `Employee`&#8203;s it was loading before.
 
 .Updating the database pre-loader
 [source,java,tabsize=2,indent=0]
 ----
-include::links/src/main/java/payroll/LoadDatabase.java[tag=order]
+include::links/src/main/java/payroll/LoadDatabase.java[]
 ----
 
-...you can test things out!
+Now you can test things out!
 
 To use the newly minted order service, just perform a few operations:
 
