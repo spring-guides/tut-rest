@@ -834,7 +834,7 @@ To round out order fulfillment, add the following to the `OrderController` for t
 include::links/src/main/java/payroll/OrderController.java[tag=delete]
 ----
 
-It checks the `Order` status before allowing it to be cancelled. If it's not a valid state, it returns a Spring HATEOAS `VndError`,
+It checks the `Order` status before allowing it to be cancelled. If it's not a valid state, it returns an https://tools.ietf.org/html/rfc7807[RFC-7807] `Problem`,
 a hypermedia-supporting error container. If the transition is indeed valid, it transitions the `Order` to `CANCELLED`.
 
 And add this to the `OrderController` as well for order completion:
@@ -960,17 +960,17 @@ $ curl -v -X DELETE http://localhost:8080/orders/4/cancel
 > Accept: */*
 >
 < HTTP/1.1 405
-< Content-Type: application/hal+json;charset=UTF-8
+< Content-Type: application/problem+json
 < Transfer-Encoding: chunked
 < Date: Mon, 27 Aug 2018 15:03:24 GMT
 <
 {
-  "logref": "Method not allowed",
-  "message": "You can't cancel an order that is in the CANCELLED status"
+  "title": "Method not allowed",
+  "detail": "You can't cancel an order that is in the CANCELLED status"
 }
 ----
 
-...you see an *HTTP 405 Method Not Allowed* response. *DELETE* has become an invalid operation. The `VndError` response
+...you see an *HTTP 405 Method Not Allowed* response. *DELETE* has become an invalid operation. The `Problem` response
 object clearly indicates that you aren't allowed to "cancel" an order already in the "CANCELLED" status.
 
 Additionally, trying to complete the same order also fails:
@@ -986,13 +986,13 @@ $ curl -v -X PUT localhost:8080/orders/4/complete
 > Accept: */*
 >
 < HTTP/1.1 405
-< Content-Type: application/hal+json;charset=UTF-8
+< Content-Type: application/problem+json
 < Transfer-Encoding: chunked
 < Date: Mon, 27 Aug 2018 15:05:40 GMT
 <
 {
-  "logref": "Method not allowed",
-  "message": "You can't complete an order that is in the CANCELLED status"
+  "title": "Method not allowed",
+  "detail": "You can't complete an order that is in the CANCELLED status"
 }
 ----
 
