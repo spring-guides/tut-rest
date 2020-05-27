@@ -245,6 +245,12 @@ It's not hard to show the currently coded interactions...
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
+[CAUTION]
+====
+If you are using Windows Command Prompt to issue cURL commands, chances are it won't work properly.
+You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
+====
+
 Creates a new `Employee` record, and then sends the content back to us:
 
 ----
