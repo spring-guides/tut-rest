@@ -591,6 +591,8 @@ to come up with a set of transforms for most scenarios, ehh?
 [IMPORTANT] 
 ==== 
 Don't forget to go and change how you preload your database (in `LoadDatabase`) to use this new constructor.
+
+[source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/LoadDatabase.java[tag=new_constructor]
 ----
