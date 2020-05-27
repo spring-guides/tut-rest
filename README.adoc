@@ -459,14 +459,14 @@ code this method yourself, there are benefits down the road of implementing Spri
 include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
 ----
 
-This simple interface has one method: `toModel()`. It is based on converting a non-resource object (`Employee`) into a resource-based
+This simple interface has one method: `toModel()`. It is based on converting a non-model object (`Employee`) into a model-based
 object (`EntityModel<Employee>`).
 
 All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
 will be automatically created when the app starts.
 
-NOTE: Spring HATEOAS's abstract base class for all resources is `RepresentationModel`. But for simplicity, I recommend using `EntityModel<T>`
-as your mechanism to easily wrap all POJOs as resources.
+NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I recommend using `EntityModel<T>`
+as your mechanism to easily wrap all POJOs as models.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
@@ -608,7 +608,7 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=post]
 
 * The new `Employee` object is saved as before. But the resulting object is wrapped using the `EmployeeModelAssembler`.
 * Spring MVC's `ResponseEntity` is used to create an *HTTP 201 Created* status message. This type of response typically includes a *Location* response header, and we use the URI derived from the model's self-related link.
-* Additionally, return the resource-based version of the saved object.
+* Additionally, return the model-based version of the saved object.
 
 With these tweaks in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
 
@@ -807,7 +807,7 @@ dynamically add them to the list of links. Clients only need show users the corr
 This decouples clients from having to know WHEN such actions are valid, reducing the risk of the server and its clients getting
 out of sync on the logic of state transitions.
 
-Having already embraced the concept of Spring HATEOAS `ResourceAssembler` components, putting such logic in the `OrderModelAssembler`
+Having already embraced the concept of Spring HATEOAS `RepresentationModelAssembler` components, putting such logic in the `OrderModelAssembler`
 would be the perfect place to capture this business rule:
 
 .links/src/main/java/payroll/OrderModelAssembler.java
