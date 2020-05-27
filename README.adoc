@@ -240,15 +240,10 @@ It's not hard to show the currently coded interactions...
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
-[CAUTION] 
-.Error 415 anyone?
-==== 
-If you're using Windows's Command Prompt and you got https://gist.github.com/UgmaDevelopment/abfea553b77312d156111769bf2c05ab[an error] on the previous command, you should either:
-
-
-* not use Command Prompt in this tutorial--you'll save yourself some trouble and avoid the problem by https://www.atlassian.com/git/tutorials/git-bash[using bash] instead
-or
-* https://stackoverflow.com/a/22597714/5432315[escape your double quotes]
+[CAUTION]
+====
+If you are using Windows Command Prompt to issue cURL commands, chances are it won't work properly.
+You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
 ====
 
 Creates a new `Employee` record, and then sends the content back to us:
@@ -348,9 +343,9 @@ If you restart the application and query the employee record of _Bilbo_, you'll 
 ==== 
 When your curl output gets more complex it can become hard to read. Use this or https://stackoverflow.com/q/27238411/5432315[other tips] to prettify the json returned by curl:
 ....
-# The indicated part pipes the output to python and asks it to make your JSON pretty.
+# The indicated part pipes the output to json_pp and asks it to make your JSON pretty. (Or use whatever tool you like!)
 #                                  v------------------v 
-curl -v localhost:8080/employees/1 | python -mjson.tool
+curl -v localhost:8080/employees/1 | json_pp
 ....
 ====
 
