@@ -11,23 +11,18 @@ import org.springframework.context.annotation.Configuration;
 class LoadDatabase {
 
 	@Bean
-	CommandLineRunner initDatabase(EmployeeRepository employeeRepository,
-								   OrderRepository orderRepository) {
+	CommandLineRunner initDatabase(EmployeeRepository employeeRepository, OrderRepository orderRepository) {
 		return args -> {
 			employeeRepository.save(new Employee("Bilbo", "Baggins", "burglar"));
 			employeeRepository.save(new Employee("Frodo", "Baggins", "thief"));
 
-			employeeRepository.findAll().forEach(employee -> {
-				log.info("Preloaded " + employee);
-			});
+			employeeRepository.findAll().forEach(employee -> log.info("Preloaded " + employee));
 
 			// tag::order[]
 			orderRepository.save(new Order("MacBook Pro", Status.COMPLETED));
 			orderRepository.save(new Order("iPhone", Status.IN_PROGRESS));
 
-			orderRepository.findAll().forEach(order -> {
-				log.info("Preloaded " + order);
-			});
+			orderRepository.findAll().forEach(order -> log.info("Preloaded " + order));
 			// end::order[]
 		};
 	}
