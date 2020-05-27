@@ -323,6 +323,12 @@ A critical ingredient to any RESTful service is adding https://tools.ietf.org/ht
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 
+[NOTE]
+====
+This tutorial is based on Spring MVC and uses the static helper methods from `WebMvcLinkBuilder` to build these links.
+If you are using Spring WebFlux in your project, you must instead use `WebFluxLinkBuilder`.
+====
+
 .Relevant import statements
 [source,java,tabsize=2,indent=0]
 ----
@@ -448,7 +454,7 @@ link to the aggregate root was shown twice. If that raised your concern, good! T
 Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily
 code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `RepresentationModelAssembler` interface.
 
-.evolution/src/main/java/payroll/EmployeeResourceAssembler.java
+.evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
@@ -465,7 +471,7 @@ as your mechanism to easily wrap all POJOs as resources.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
-.Injecting EmployeeResourceAssembler into the controller
+.Injecting EmployeeModelAssembler into the controller
 [source,java,tabsize=2,indent=0]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor]
