@@ -42,7 +42,9 @@ class OrderController {
 
 	@GetMapping("/orders/{id}")
 	EntityModel<Order> one(@PathVariable Long id) {
-		Order order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+
+		Order order = orderRepository.findById(id) //
+				.orElseThrow(() -> new OrderNotFoundException(id));
 
 		return assembler.toModel(order);
 	}
@@ -62,7 +64,8 @@ class OrderController {
 	@DeleteMapping("/orders/{id}/cancel")
 	ResponseEntity<?> cancel(@PathVariable Long id) {
 
-		Order order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+		Order order = orderRepository.findById(id) //
+				.orElseThrow(() -> new OrderNotFoundException(id));
 
 		if (order.getStatus() == Status.IN_PROGRESS) {
 			order.setStatus(Status.CANCELLED);
@@ -80,7 +83,8 @@ class OrderController {
 	@PutMapping("/orders/{id}/complete")
 	ResponseEntity<?> complete(@PathVariable Long id) {
 
-		Order order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+		Order order = orderRepository.findById(id) //
+				.orElseThrow(() -> new OrderNotFoundException(id));
 
 		if (order.getStatus() == Status.IN_PROGRESS) {
 			order.setStatus(Status.COMPLETED);

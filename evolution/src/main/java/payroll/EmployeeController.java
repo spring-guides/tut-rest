@@ -62,7 +62,8 @@ class EmployeeController {
 	@GetMapping("/employees/{id}")
 	EntityModel<Employee> one(@PathVariable Long id) {
 
-		Employee employee = repository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
+		Employee employee = repository.findById(id) //
+				.orElseThrow(() -> new EmployeeNotFoundException(id));
 
 		return assembler.toModel(employee);
 	}
