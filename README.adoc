@@ -324,13 +324,6 @@ This tutorial is based on Spring MVC and uses the static helper methods from `We
 If you are using Spring WebFlux in your project, you must instead use `WebFluxLinkBuilder`.
 ====
 
-.Relevant import statements
-[source,java,tabsize=2,indent=0]
-----
-include::rest/src/main/java/payroll/EmployeeController.java[tag=hateoas-imports]
-----
-
-
 This is very similar to what we had before, but a few things have changed:
 
 * The return type of the method has changed from `Employee` to `EntityModel<Employee>`. `EntityModel<T>` is a generic container from Spring HATEOAS that includes not only the data but a collection of links.
