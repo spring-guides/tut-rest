@@ -310,7 +310,7 @@ include::rest/pom.xml[tag=spring-hateoas]
 
 This tiny library will give us the constructs to define a RESTful service and then render it in an acceptable format for client consumption.
 
-A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc5988[links] to relevant operations. To make your controller more RESTful, add links like this:
+A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like this:
 
 .Getting a single item resource
 [source,java,tabsize=2,indent=0]
