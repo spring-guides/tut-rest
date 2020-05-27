@@ -48,13 +48,10 @@ As we work through this tutorial, we'll use https://spring.io/projects/spring-bo
 * Web
 * JPA
 * H2
-* Lombok
 
 Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven based.)
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. https://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
-
-If you pick up IntelliJ IDEA as your IDE for this tutorial, you have to install lombok plugin. In order to see how we install plugins in IntelliJ IDEA please have a look at https://www.jetbrains.com/help/idea/managing-plugins.html[managing-plugins]. After this you have to ensure that "Enable annotation processing" checkbox is ticked under: Preferences -> Compiler -> Annotation Processors, as it is described https://stackoverflow.com/questions/14866765/building-with-lomboks-slf4j-and-intellij-cannot-find-symbol-log
 
 video::p8AdyMlpmPk[youtube]
 
@@ -72,7 +69,6 @@ include::nonrest/src/main/java/payroll/Employee.java[]
 
 Despite being small, this Java class contains much:
 
-* `@Data` is a Lombok annotation to create all the getters, setters, `equals`, `hash`, and `toString` methods, based on the fields.
 * `@Entity` is a JPA annotation to make this object ready for storage in a JPA-based data store.
 * `id`, `name`, and `role` are the attribute for our domain object, the first being marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
 * a custom constructor is created when we need to create a new instance, but don't yet have an id.
@@ -121,7 +117,6 @@ What happens when it gets loaded?
 * Spring Boot will run ALL `CommandLineRunner` beans once the application context is loaded.
 * This runner will request a copy of the `EmployeeRepository` you just created.
 * Using it, it will create two entities and store them.
-* `@Slf4j` is a Lombok annotation to autocreate an Slf4j-based `LoggerFactory` as `log`, allowing us to log these newly created "employees".
 
 Right-click and *Run* `PayRollApplication`, and this is what you get:
 
@@ -581,7 +576,7 @@ include::evolution/src/main/java/payroll/Employee.java[]
 
 This class is very similar to the previous version of `Employee`. Let's go over the changes:
 
-* Field `name` has been replaced by `firstName` and `lastName`. Lombok will generate getters and setters for those.
+* Field `name` has been replaced by `firstName` and `lastName`.
 * A "virtual" getter for the old `name` property, `getName()` is defined. It uses the `firstName` and `lastName` fields to produce a value.
 * A "virtual" setter for the old `name` property is also defined, `setName()`. It parses an incoming string and stores it into the proper fields.
 
