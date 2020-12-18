@@ -288,7 +288,7 @@ $ curl localhost:8080/employees/3
 Could not find employee 3
 ----
 
-This is all well and good, but do we have RESTful service yet? (If you didn't catch the hint, the answer is no.)
+This is all well and good, but do we have a RESTful service yet? (If you didn't catch the hint, the answer is no.)
 
 What's missing?
 
@@ -296,13 +296,13 @@ What's missing?
 
 So far, you have a web-based service that handles the core operations involving employee data. But that's not enough to make things "RESTful".
 
-* Pretty URLs like /employees/3 aren't REST.
-* Merely using `GET`, `POST`, etc. aren't REST.
-* Having all the CRUD operations laid out aren't REST.
+* Pretty URLs like `/employees/3` aren't REST.
+* Merely using `GET`, `POST`, etc. isn't REST.
+* Having all the CRUD operations laid out isn't REST.
 
 In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*). That's because there is no way to know how to interact with this service. If you published this today, you'd also have to write a document or host a developer's portal somewhere with all the details.
 
-This statement of Roy Fielding may further lend a clue to the difference between *REST* and *RPC*:
+This statement of Roy Fielding's may further lend a clue to the difference between *REST* and *RPC*:
 
 [quote, Roy Fielding, https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven]
 ____
