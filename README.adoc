@@ -327,7 +327,7 @@ This tiny library will give us the constructs to define a RESTful service and th
 A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like this:
 
 .Getting a single item resource
-[source,java,tabsize=2,indent=0,highlight=61-62]
+[source,java,tabsize=2,indent=0,highlight=8-9]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
@@ -468,17 +468,18 @@ link. The *"collection"* is listed underneath the *"_embedded"* section; this is
 And each individual member of the collection has their information as well as related links.
 
 What is the point of adding all these links? It makes it possible to evolve REST services over time. Existing links can be maintained
-while new links are added in the future. Newer clients may take advantage of the new links, while legacy clients can sustain themselves
+while new links can be added in the future. Newer clients may take advantage of the new links, while legacy clients can sustain themselves
 on the old links. This is especially helpful if services get relocated and moved around. As long as the link structure is maintained,
 clients can STILL find and interact with things.
 
 == Simplifying Link Creation
 
-Did you notice the repetition in single employee link creation? The code to provide a single link to an employee as well as an "employees"
-link to the aggregate root was shown twice. If that raised your concern, good! There's a solution.
+In the code earlier, did you notice the repetition in single employee link creation? The code to provide 
+a single link to an employee, as well as to create an "employees" link to the aggregate root, was shown 
+twice. If that raised your concern, good! There's a solution.
 
-Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily
-code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `RepresentationModelAssembler` interface.
+Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily code this method yourself, there are benefits down the road of 
+implementing Spring HATEOAS's `RepresentationModelAssembler` interface—which will do the work for you.
 
 .evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [source,java,tabsize=2,indent=0]
@@ -486,19 +487,19 @@ code this method yourself, there are benefits down the road of implementing Spri
 include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
 ----
 
-This simple interface has one method: `toModel()`. It is based on converting a non-model object (`Employee`) into a model-based
-object (`EntityModel<Employee>`).
+This simple interface has one method: `toModel()`. It is based on converting a non-model object 
+(`Employee`) into a model-based object (`EntityModel<Employee>`).
 
-All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
-will be automatically created when the app starts.
+All the code you saw earlier in the controller can be moved into this class. And by applying Spring 
+Framework's `@Component` annotation, the assembler will be automatically created when the app starts.
 
-NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I recommend using `EntityModel<T>`
-as your mechanism to easily wrap all POJOs as models.
+NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I 
+recommend using `EntityModel<T>` as your mechanism to easily wrap all POJOs as models.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
 .Injecting EmployeeModelAssembler into the controller
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=8]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor]
 
@@ -507,16 +508,16 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor
 }
 ----
 
-From here, you can use it in the single-item employee method:
+From here, you can use that assembler in the single-item employee method:
 
 .Getting single item resource using the assembler
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=7]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 
-This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you delegate it to the assembler.
-Maybe that doesn't look like much?
+This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you 
+delegate it to the assembler. Maybe that doesn't look like much.
 
 Applying the same thing in the aggregate root controller method is more impressive:
 
@@ -526,10 +527,9 @@ Applying the same thing in the aggregate root controller method is more impressi
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
 
-The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`.
-Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
+The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`. Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
 
-IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario, adding hypermedia to your service without hard coding a thing.
+IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario: adding hypermedia to your service without hard coding a thing.
 
 At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
 
