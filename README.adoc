@@ -316,7 +316,7 @@ The side effect of NOT including hypermedia in our representations is that clien
 
 Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add this to your build:
 
-.Adding Spring HATEOAS to pom.xml
+.Adding Spring HATEOAS to `dependencies` section of `pom.xml`
 [source,xml,indent=0]
 ----
 include::rest/pom.xml[tag=spring-hateoas]
@@ -327,7 +327,7 @@ This tiny library will give us the constructs to define a RESTful service and th
 A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like this:
 
 .Getting a single item resource
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=61-62]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
@@ -384,7 +384,7 @@ curl -v localhost:8080/employees/1 | json_pp
 This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
 
 HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
-there is a "self" link (kind of like a `this` statement in code) along with a link back to the *aggregate root*.
+there is a "self" link (kind of like a `this` statement in code) along with a link back to the *https://www.google.com/search?q=What+is+an+aggregate+root[aggregate root]*.
 
 To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within:
 
