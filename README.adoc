@@ -478,8 +478,9 @@ In the code earlier, did you notice the repetition in single employee link creat
 a single link to an employee, as well as to create an "employees" link to the aggregate root, was shown 
 twice. If that raised your concern, good! There's a solution.
 
-Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily code this method yourself, there are benefits down the road of 
-implementing Spring HATEOAS's `RepresentationModelAssembler` interface—which will do the work for you.
+Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. 
+While you could easily code this method yourself, there are benefits down the road of implementing Spring 
+HATEOAS's `RepresentationModelAssembler` interface—which will do the work for you.
 
 .evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [source,java,tabsize=2,indent=0]
@@ -537,30 +538,35 @@ But that is not the only thing needed to build a truly RESTful service with Spri
 
 == Evolving REST APIs
 
-With one additional library and a few lines of extra code, you have added hypermedia to your application. But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact that it's neither a technology stack nor a single standard.
+With one additional library and a few lines of extra code, you have added hypermedia to your application. 
+But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact 
+that it's neither a technology stack nor a single standard.
 
-REST is a collection of architectural constraints that when adopted make your application much more resilient. A key factor of
-resilience is that when you make upgrades to your services, your clients don't suffer from downtime.
+REST is a collection of architectural constraints that when adopted make your application much more
+resilient. A key factor of resilience is that when you make upgrades to your services, your clients 
+don't suffer from downtime.
 
-In the "olden" days, upgrades were notorious for breaking clients. In other words, an upgrade to the server required an update
-to the client. In this day and age, hours or even minutes of downtime spent doing an upgrade can cost millions in
-lost revenue.
+In the "olden" days, upgrades were notorious for breaking clients. In other words, an upgrade to the 
+server required an update to the client. In this day and age, hours or even minutes of downtime spent 
+doing an upgrade can cost millions in lost revenue.
 
-Some companies require that you present management with a plan to minimize downtime. In the past, you could get away
-with upgrading at 2:00 a.m. on a Sunday when load was at a minimum. But in today's Internet-based e-commerce with international
-customers, such strategies are not as effective.
+Some companies require that you present management with a plan to minimize downtime. In the past, you 
+could get away with upgrading at 2:00 a.m. on a Sunday when load was at a minimum. But in today's 
+Internet-based e-commerce with international customers in other time zones, such strategies are not as effective.
 
-SOAP-based services and CORBA-based services were incredibly brittle. It was hard to roll out a server that could support both old and new
-clients. With REST-based practices, it's much easier. Especially using the Spring stack.
+https://www.tutorialspoint.com/soap/what_is_soap.htm[SOAP-based services] and 
+https://www.corba.org/faq.htm[CORBA-based services] were incredibly brittle. It was hard to roll out a
+server that could support both old and new clients. With REST-based practices, it's much easier. 
+Especially using the Spring stack.
 
 === Supporting changes to the API
-Imagine this design problem: You've rolled out a system with this `Employee` -based record. The system is a major hit. You've sold
-your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
+Imagine this design problem: You've rolled out a system with this `Employee`-based record. The system is a major hit. You've sold your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
 
 Uh oh. Didn't think of that.
 
-Before you open up the `Employee` class and replace the single field `name` with `firstName` and `lastName`, stop and think for a second.
-Will that break any clients? How long will it take to upgrade them. Do you even control all the clients accessing your services?
+Before you open up the `Employee` class and replace the single field `name` with `firstName` and 
+lastName`, stop and think for a second. Will that break any clients? How long will it take to upgrade 
+them. Do you even control all the clients accessing your services?
 
 Downtime = lost money. Is management ready for that?
 
@@ -569,7 +575,9 @@ There is an old strategy that precedes REST by years.
 [quote, Unknown]
 Never delete a column in a database.
 
-You can always add columns (fields) to a database table. But don't take one away. The principle in RESTful services is the same.
+You can always add columns (fields) to a database table. But don't take one away. The principle in RESTful 
+services is the same. 
+
 Add new fields to your JSON representations, but don't take any away. Like this:
 
 .JSON that supports multiple clients
@@ -601,7 +609,7 @@ And not only should you show this information in both the "old way" and the "new
 How? Simple. Like this:
 
 .Employee record that handles both "old" and "new" clients
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=26-34]
 ----
 include::evolution/src/main/java/payroll/Employee.java[]
 ----
@@ -612,8 +620,8 @@ This class is very similar to the previous version of `Employee`. Let's go over 
 * A "virtual" getter for the old `name` property, `getName()` is defined. It uses the `firstName` and `lastName` fields to produce a value.
 * A "virtual" setter for the old `name` property is also defined, `setName()`. It parses an incoming string and stores it into the proper fields.
 
-Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But it's surely not impossible
-to come up with a set of transforms for most scenarios, ehh?
+Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But 
+it's surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
@@ -1031,19 +1039,20 @@ of a change in the data. And Spring HATEOAS eases building the hypermedia you ne
 
 == Summary
 
-Throughout this tutorial, you have engaged in various tactics to build REST API. As it turns out, REST isn't just about
-pretty URIs and returning JSON instead of XML.
+Throughout this tutorial, you have engaged in various tactics to build REST APIs. As it turns out, REST isn't just about pretty URIs and returning JSON instead of XML.
 
 Instead, the following tactics help make your services less likely to break existing clients you may or may not control:
 
 * Don't remove old fields. Instead, support them.
 * Use rel-based links so clients don't have to hard code URIs.
-* Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients have a path onto the newer features.
+* Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients 
+  have a path onto the newer features.
 * Use links, not payload data, to instruct clients when various state-driving operations are available.
 
-It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each resource type and to use these components
-in all of your controllers. But this extra bit of server-side setup (made easy thanks to Spring HATEOAS) can ensure the
-clients you control (and more importantly, those you don't) can upgrade with ease as you evolve your API.
+It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each 
+resource type and to use these components in all of your controllers. But this extra bit of server-side 
+setup (made easy thanks to Spring HATEOAS) can ensure the clients you control (and more importantly, those 
+you don't) can upgrade with ease as you evolve your API.
 
 This concludes our tutorial on how to build RESTful services using Spring. Each section of this tutorial is managed as a separate
 subproject in a single github repo:
