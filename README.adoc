@@ -30,9 +30,9 @@ These are all critical factors on building resilient services. But that is not a
 
 Developers are able to draw upon 3rd party toolkits that implement these diverse specs and instantly have both client and server technology at their fingertips.
 
-So building on top of HTTP, REST APIs provide the means to build flexible APIs that can:
+By building on top of HTTP, REST APIs provide the means to build:
 
-* Support backward compatibility
+* Backwards compatible APIs
 * Evolvable APIs
 * Scaleable services
 * Securable services
@@ -43,13 +43,13 @@ we will use the Spring portfolio to build a RESTful service while leveraging the
 
 == Getting Started
 
-As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and select the following:
+As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and add the following dependencies to a project:
 
 * Web
 * JPA
 * H2
 
-Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven based.)
+Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven-based.)
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. https://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
@@ -59,7 +59,9 @@ video::p8AdyMlpmPk[youtube]
 
 Let's start off with the simplest thing we can construct. In fact, to make it as simple as possible, we can even leave out the concepts of REST. (Later on, we'll add REST to understand the difference.)
 
-Our example models a simple payroll service that manages the employees of a company. Simply put, you need to store employee objects in an H2 in-memory database, and access them via JPA. This will be wrapped with a Spring MVC layer to access remotely.
+Big picture: We'll store employee objects in a (H2 in-memory) database, and access them (via something called JPA). Then we'll wrap that with something that will allow remote access (called the Spring MVC layer).
+
+The following example code models a simple payroll service that manages the employees of a company.  
 
 .nonrest/src/main/java/payroll/Employee.java
 [source,java,tabsize=2,indent=0]
