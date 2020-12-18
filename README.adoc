@@ -14,7 +14,7 @@ projects: [spring-framework, spring-hateoas, spring-security, spring-security-oa
 
 REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume.
 
-There's a much larger discussion to be had about how REST fits in the world of microservices, but - for this tutorial - let's just look at building RESTful services.
+There's a much larger discussion to be had about how REST fits in the world of microservices, but — for this tutorial — let's just look at building RESTful services.
 
 Why REST? REST embraces the precepts of the web, including its architecture, benefits, and everything else. This is no surprise given its author, Roy Fielding, was involved
 in probably a dozen specs which govern how the web operates.
@@ -1021,10 +1021,10 @@ clients you control (and more importantly, those you don't) can upgrade with eas
 This concludes our tutorial on how to build RESTful services using Spring. Each section of this tutorial is managed as a separate
 subproject in a single github repo:
 
-* *nonrest* - Simple Spring MVC app with no hypermedia
-* *rest* - Spring MVC + Spring HATEOAS app with HAL representations of each resource
-* *evolution* - REST app where a field is evolved but old data is retained for backward compatibility
-* *links* - REST app where conditional links are used to signal valid state changes to clients
+* *nonrest* — Simple Spring MVC app with no hypermedia
+* *rest* — Spring MVC + Spring HATEOAS app with HAL representations of each resource
+* *evolution* — REST app where a field is evolved but old data is retained for backward compatibility
+* *links* — REST app where conditional links are used to signal valid state changes to clients
 
 To view more examples of using Spring HATEOAS see https://github.com/spring-projects/spring-hateoas-examples.
 
