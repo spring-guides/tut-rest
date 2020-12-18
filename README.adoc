@@ -153,7 +153,7 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[]
 
 * `@RestController` indicates that the data returned by each method will be written straight into the response body instead of rendering a template.
 * An `EmployeeRepository` is injected by constructor into the controller.
-* We have routes for each operations (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
+* We have routes for each operation (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
 * `EmployeeNotFoundException` is an exception used to indicate when an employee is looked up but not found.
 
 .nonrest/src/main/java/payroll/EmployeeNotFoundException.java
@@ -253,7 +253,7 @@ $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{
 
 [CAUTION]
 ====
-If you are using Windows Command Prompt to issue cURL commands, chances are it won't work properly.
+If you are using Windows Command Prompt to issue cURL commands, chances are the above command won't work properly.
 You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
 ====
 
