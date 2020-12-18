@@ -49,7 +49,7 @@ As we work through this tutorial, we'll use https://spring.io/projects/spring-bo
 * JPA
 * H2
 
-Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven-based.)
+Change the Name to "Payroll" and then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven-based.)
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. https://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
@@ -59,9 +59,13 @@ video::p8AdyMlpmPk[youtube]
 
 Let's start off with the simplest thing we can construct. In fact, to make it as simple as possible, we can even leave out the concepts of REST. (Later on, we'll add REST to understand the difference.)
 
-Big picture: We'll store employee objects in a (H2 in-memory) database, and access them (via something called JPA). Then we'll wrap that with something that will allow remote access (called the Spring MVC layer).
+:abbr-jpa: pass:[<abbr title="Java Persistence API—basically it lets you map Java objects to relational database tables.">JPA</abbr>]
 
-The following example code models a simple payroll service that manages the employees of a company.  
+:abbr-mvc: pass:[<abbr title="Model-View-Controller—it'll be explained later.">MVC</abbr>]
+
+Big picture: We're going to create a simple payroll service that manages the employees of a company. We'll store employee objects in a (H2 in-memory) database, and access them (via something called {abbr-jpa}). Then we'll wrap that with something that will allow access over the internet (called the Spring {abbr-mvc} layer).
+
+The following code defines an Employee in our system.
 
 .nonrest/src/main/java/payroll/Employee.java
 [source,java,tabsize=2,indent=0]
@@ -72,13 +76,22 @@ include::nonrest/src/main/java/payroll/Employee.java[]
 Despite being small, this Java class contains much:
 
 * `@Entity` is a JPA annotation to make this object ready for storage in a JPA-based data store.
-* `id`, `name`, and `role` are the attribute for our domain object, the first being marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
+* `id`, `name`, and `role` are attributes of our Employee https://www.google.com/search?q=what+is+a+domain+object+in+java[domain object]. `id` is  marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
 * a custom constructor is created when we need to create a new instance, but don't yet have an id.
 
 With this domain object definition, we can now turn to https://spring.io/guides/gs/accessing-data-jpa/[Spring Data JPA] to handle the tedious database interactions.
-Spring Data repositories are interfaces with methods supporting reading, updating, deleting, and creating records against a back end data store. Some repositories also support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
+
+Spring Data JPA repositories are interfaces with methods supporting creating, reading, updating, and deleting records against a back end data store. Some repositories also support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
 
 NOTE: There are multiple repository implementations besides JPA. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc. For this tutorial, we'll stick with JPA.
+
+Spring makes accessing data easy. By simply declaring the following `EmployeeRepository` interface we automatically will be able to 
+
+* Create new Employees
+* Update existing ones
+* Delete Employees
+* Find Employees (one, all, or search by simple or complex properties)
+
 
 .nonrest/src/main/java/payroll/EmployeeRepository.java
 [source,java,tabsize=2,indent=0]
@@ -86,12 +99,8 @@ NOTE: There are multiple repository implementations besides JPA. You can use Spr
 include::nonrest/src/main/java/payroll/EmployeeRepository.java[]
 ----
 
-This interface extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the id type as `Long`. This interface, though empty on the surface, packs a punch given it supports:
+To get all this free functionality, all we had to do was declare an interface which extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the id type as `Long`.
 
-* Creating new instances
-* Updating existing ones
-* Deleting
-* Finding (one, all, by simple or complex properties)
 
 Spring Data's https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories[repository solution] makes it possible to sidestep data store specifics and instead solve a majority of problems using domain-specific terminology.
 
