@@ -386,26 +386,39 @@ This decompressed output shows not only the data elements you saw earlier (`id`,
 HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
 there is a "self" link (kind of like a `this` statement in code) along with a link back to the *https://www.google.com/search?q=What+is+an+aggregate+root[aggregate root]*.
 
-To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within:
+To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within.
 
-.Getting an aggregate root resource
+So we turn this
+
+.Getting an aggregate root
+[source,java,tabsize=2,indent=0]
+----
+include::nonrest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
+----
+
+into this
+
+.Getting an aggregate root *resource*
 [source,java,tabsize=2,indent=0]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
 
-Wow! That method, which used to just be `repository.findAll()` has grown big! Let's unpack it.
+Wow! That method, which used to just be `repository.findAll()`, is all grown up! Not to worry. Let's unpack it.
 
-`CollectionModel<>` is another Spring HATEOAS container aimed at encapsulating collections. It, too, also lets you include links.
+`CollectionModel<>` is another Spring HATEOAS container; it's aimed at encapsulating collections of
+ resources—instead of a single resource entity, like `EntityModel<>` from earlier. 
+ `CollectionModel<>`, too, lets you include links.
+
 Don't let that first statement slip by. What does "encapsulating collections" mean? Collections of employees?
 
 Not quite.
 
 Since we're talking REST, it should encapsulate collections of *employee resources*.
 
-That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Stream API!)
+That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Streams!)
 
-If you restart the application and fetch the aggregate root, you can see what this looks like.
+If you restart the application and fetch the aggregate root, you can see what it looks like now.
 
 .RESTful representation of a collection of employee resources
 [source,javascript]
@@ -449,8 +462,8 @@ If you restart the application and fetch the aggregate root, you can see what th
 }
 ----
 
-For this aggregate root, which serves up a collection of employee resources, there is a top-level *"self"* link. The *"collection"*
-is listed underneath the *"_embedded"* section. This is how HAL represents collections.
+For this aggregate root, which serves up a collection of employee resources, there is a top-level *"self"* 
+link. The *"collection"* is listed underneath the *"_embedded"* section; this is how HAL represents collections.
 
 And each individual member of the collection has their information as well as related links.
 
