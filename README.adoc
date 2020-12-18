@@ -247,40 +247,43 @@ This message nicely shows an *HTTP 404* error with the custom message *Could not
 
 It's not hard to show the currently coded interactions...
 
+
+[CAUTION]
+====
+If you are using Windows Command Prompt to issue cURL commands, chances are the below command won't work properly. You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
+====
+
+To create a new `Employee` record we use the following command in a terminal—the `$` at the beginning signifies that what follows it is a terminal command:
 ----
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
-[CAUTION]
-====
-If you are using Windows Command Prompt to issue cURL commands, chances are the above command won't work properly.
-You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
-====
-
-Creates a new `Employee` record, and then sends the content back to us:
+Then it stores newly created employee and sends it back to us:
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"gardener"}
 ----
 
-You can alter the user:
+You can update the user. Let's change his role.
 
 ----
 $ curl -X PUT localhost:8080/employees/3 -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}'
 ----
 
-Updates the user:
+And we can see the change reflected in the output.
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"ring bearer"}
 ----
 
-WARNING: Depending on how you construct your service can have significant impacts. In this situation, *replace* is a better description than *update*. For example, if the name was NOT provided, it would instead get nulled out.
+WARNING: The way you construct your service can have significant impacts. In this situation, we said *update*, but *replace* is a better description. For example, if the name was NOT provided, it would instead get nulled out.
 
-And you can delete...
+Finally, you can delete users like this:
 
 ----
 $ curl -X DELETE localhost:8080/employees/3
+
+# Now if we look again, it's gone
 $ curl localhost:8080/employees/3
 Could not find employee 3
 ----
