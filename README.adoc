@@ -14,7 +14,7 @@ projects: [spring-framework, spring-hateoas, spring-security, spring-security-oa
 
 REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume.
 
-There's a much larger discussion to be had about how REST fits in the world of microservices, but - for this tutorial - let's just look at building RESTful services.
+There's a much larger discussion to be had about how REST fits in the world of microservices, but — for this tutorial — let's just look at building RESTful services.
 
 Why REST? REST embraces the precepts of the web, including its architecture, benefits, and everything else. This is no surprise given its author, Roy Fielding, was involved
 in probably a dozen specs which govern how the web operates.
@@ -30,9 +30,9 @@ These are all critical factors on building resilient services. But that is not a
 
 Developers are able to draw upon 3rd party toolkits that implement these diverse specs and instantly have both client and server technology at their fingertips.
 
-So building on top of HTTP, REST APIs provide the means to build flexible APIs that can:
+By building on top of HTTP, REST APIs provide the means to build:
 
-* Support backward compatibility
+* Backwards compatible APIs
 * Evolvable APIs
 * Scaleable services
 * Securable services
@@ -43,13 +43,13 @@ we will use the Spring portfolio to build a RESTful service while leveraging the
 
 == Getting Started
 
-As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and select the following:
+As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and add the following dependencies to a project:
 
 * Web
 * JPA
 * H2
 
-Then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven based.)
+Change the Name to "Payroll" and then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven-based.)
 
 Spring Boot can work with any IDE. You can use Eclipse, IntelliJ IDEA, Netbeans, etc. https://spring.io/tools/[The Spring Tool Suite] is an open-source, Eclipse-based IDE distribution that provides a superset of the Java EE distribution of Eclipse. It includes features that making working with Spring applications even easier. It is, by no means, required. But consider it if you want that extra *oomph* for your keystrokes. Here's a video demonstrating how to get started with STS and Spring Boot. This is a general introduction to familiarize you with the tools.
 
@@ -59,7 +59,13 @@ video::p8AdyMlpmPk[youtube]
 
 Let's start off with the simplest thing we can construct. In fact, to make it as simple as possible, we can even leave out the concepts of REST. (Later on, we'll add REST to understand the difference.)
 
-Our example models a simple payroll service that manages the employees of a company. Simply put, you need to store employee objects in an H2 in-memory database, and access them via JPA. This will be wrapped with a Spring MVC layer to access remotely.
+:abbr-jpa: pass:[<abbr title="Java Persistence API—basically it lets you map Java objects to relational database tables.">JPA</abbr>]
+
+:abbr-mvc: pass:[<abbr title="Model-View-Controller—it'll be explained later.">MVC</abbr>]
+
+Big picture: We're going to create a simple payroll service that manages the employees of a company. We'll store employee objects in a (H2 in-memory) database, and access them (via something called {abbr-jpa}). Then we'll wrap that with something that will allow access over the internet (called the Spring {abbr-mvc} layer).
+
+The following code defines an Employee in our system.
 
 .nonrest/src/main/java/payroll/Employee.java
 [source,java,tabsize=2,indent=0]
@@ -70,13 +76,22 @@ include::nonrest/src/main/java/payroll/Employee.java[]
 Despite being small, this Java class contains much:
 
 * `@Entity` is a JPA annotation to make this object ready for storage in a JPA-based data store.
-* `id`, `name`, and `role` are the attribute for our domain object, the first being marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
+* `id`, `name`, and `role` are attributes of our Employee https://www.google.com/search?q=what+is+a+domain+object+in+java[domain object]. `id` is  marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
 * a custom constructor is created when we need to create a new instance, but don't yet have an id.
 
 With this domain object definition, we can now turn to https://spring.io/guides/gs/accessing-data-jpa/[Spring Data JPA] to handle the tedious database interactions.
-Spring Data repositories are interfaces with methods supporting reading, updating, deleting, and creating records against a back end data store. Some repositories also support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
+
+Spring Data JPA repositories are interfaces with methods supporting creating, reading, updating, and deleting records against a back end data store. Some repositories also support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
 
 NOTE: There are multiple repository implementations besides JPA. You can use Spring Data MongoDB, Spring Data GemFire, Spring Data Cassandra, etc. For this tutorial, we'll stick with JPA.
+
+Spring makes accessing data easy. By simply declaring the following `EmployeeRepository` interface we automatically will be able to 
+
+* Create new Employees
+* Update existing ones
+* Delete Employees
+* Find Employees (one, all, or search by simple or complex properties)
+
 
 .nonrest/src/main/java/payroll/EmployeeRepository.java
 [source,java,tabsize=2,indent=0]
@@ -84,12 +99,8 @@ NOTE: There are multiple repository implementations besides JPA. You can use Spr
 include::nonrest/src/main/java/payroll/EmployeeRepository.java[]
 ----
 
-This interface extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the id type as `Long`. This interface, though empty on the surface, packs a punch given it supports:
+To get all this free functionality, all we had to do was declare an interface which extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the id type as `Long`.
 
-* Creating new instances
-* Updating existing ones
-* Deleting
-* Finding (one, all, by simple or complex properties)
 
 Spring Data's https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories[repository solution] makes it possible to sidestep data store specifics and instead solve a majority of problems using domain-specific terminology.
 
@@ -142,7 +153,7 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[]
 
 * `@RestController` indicates that the data returned by each method will be written straight into the response body instead of rendering a template.
 * An `EmployeeRepository` is injected by constructor into the controller.
-* We have routes for each operations (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
+* We have routes for each operation (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
 * `EmployeeNotFoundException` is an exception used to indicate when an employee is looked up but not found.
 
 .nonrest/src/main/java/payroll/EmployeeNotFoundException.java
@@ -236,45 +247,48 @@ This message nicely shows an *HTTP 404* error with the custom message *Could not
 
 It's not hard to show the currently coded interactions...
 
+
+[CAUTION]
+====
+If you are using Windows Command Prompt to issue cURL commands, chances are the below command won't work properly. You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
+====
+
+To create a new `Employee` record we use the following command in a terminal—the `$` at the beginning signifies that what follows it is a terminal command:
 ----
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
-[CAUTION]
-====
-If you are using Windows Command Prompt to issue cURL commands, chances are it won't work properly.
-You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
-====
-
-Creates a new `Employee` record, and then sends the content back to us:
+Then it stores newly created employee and sends it back to us:
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"gardener"}
 ----
 
-You can alter the user:
+You can update the user. Let's change his role.
 
 ----
 $ curl -X PUT localhost:8080/employees/3 -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}'
 ----
 
-Updates the user:
+And we can see the change reflected in the output.
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"ring bearer"}
 ----
 
-WARNING: Depending on how you construct your service can have significant impacts. In this situation, *replace* is a better description than *update*. For example, if the name was NOT provided, it would instead get nulled out.
+WARNING: The way you construct your service can have significant impacts. In this situation, we said *update*, but *replace* is a better description. For example, if the name was NOT provided, it would instead get nulled out.
 
-And you can delete...
+Finally, you can delete users like this:
 
 ----
 $ curl -X DELETE localhost:8080/employees/3
+
+# Now if we look again, it's gone
 $ curl localhost:8080/employees/3
 Could not find employee 3
 ----
 
-This is all well and good, but do we have RESTful service yet? (If you didn't catch the hint, the answer is no.)
+This is all well and good, but do we have a RESTful service yet? (If you didn't catch the hint, the answer is no.)
 
 What's missing?
 
@@ -282,13 +296,13 @@ What's missing?
 
 So far, you have a web-based service that handles the core operations involving employee data. But that's not enough to make things "RESTful".
 
-* Pretty URLs like /employees/3 aren't REST.
-* Merely using `GET`, `POST`, etc. aren't REST.
-* Having all the CRUD operations laid out aren't REST.
+* Pretty URLs like `/employees/3` aren't REST.
+* Merely using `GET`, `POST`, etc. isn't REST.
+* Having all the CRUD operations laid out isn't REST.
 
 In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*). That's because there is no way to know how to interact with this service. If you published this today, you'd also have to write a document or host a developer's portal somewhere with all the details.
 
-This statement of Roy Fielding may further lend a clue to the difference between *REST* and *RPC*:
+This statement of Roy Fielding's may further lend a clue to the difference between *REST* and *RPC*:
 
 [quote, Roy Fielding, https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven]
 ____
@@ -302,7 +316,7 @@ The side effect of NOT including hypermedia in our representations is that clien
 
 Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add this to your build:
 
-.Adding Spring HATEOAS to pom.xml
+.Adding Spring HATEOAS to `dependencies` section of `pom.xml`
 [source,xml,indent=0]
 ----
 include::rest/pom.xml[tag=spring-hateoas]
@@ -313,7 +327,7 @@ This tiny library will give us the constructs to define a RESTful service and th
 A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like this:
 
 .Getting a single item resource
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=8-9]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
@@ -370,28 +384,41 @@ curl -v localhost:8080/employees/1 | json_pp
 This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
 
 HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
-there is a "self" link (kind of like a `this` statement in code) along with a link back to the *aggregate root*.
+there is a "self" link (kind of like a `this` statement in code) along with a link back to the *https://www.google.com/search?q=What+is+an+aggregate+root[aggregate root]*.
 
-To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within:
+To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within.
 
-.Getting an aggregate root resource
+So we turn this
+
+.Getting an aggregate root
+[source,java,tabsize=2,indent=0]
+----
+include::nonrest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
+----
+
+into this
+
+.Getting an aggregate root *resource*
 [source,java,tabsize=2,indent=0]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
 
-Wow! That method, which used to just be `repository.findAll()` has grown big! Let's unpack it.
+Wow! That method, which used to just be `repository.findAll()`, is all grown up! Not to worry. Let's unpack it.
 
-`CollectionModel<>` is another Spring HATEOAS container aimed at encapsulating collections. It, too, also lets you include links.
+`CollectionModel<>` is another Spring HATEOAS container; it's aimed at encapsulating collections of
+ resources—instead of a single resource entity, like `EntityModel<>` from earlier. 
+ `CollectionModel<>`, too, lets you include links.
+
 Don't let that first statement slip by. What does "encapsulating collections" mean? Collections of employees?
 
 Not quite.
 
 Since we're talking REST, it should encapsulate collections of *employee resources*.
 
-That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Stream API!)
+That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Streams!)
 
-If you restart the application and fetch the aggregate root, you can see what this looks like.
+If you restart the application and fetch the aggregate root, you can see what it looks like now.
 
 .RESTful representation of a collection of employee resources
 [source,javascript]
@@ -435,23 +462,25 @@ If you restart the application and fetch the aggregate root, you can see what th
 }
 ----
 
-For this aggregate root, which serves up a collection of employee resources, there is a top-level *"self"* link. The *"collection"*
-is listed underneath the *"_embedded"* section. This is how HAL represents collections.
+For this aggregate root, which serves up a collection of employee resources, there is a top-level *"self"* 
+link. The *"collection"* is listed underneath the *"_embedded"* section; this is how HAL represents collections.
 
 And each individual member of the collection has their information as well as related links.
 
 What is the point of adding all these links? It makes it possible to evolve REST services over time. Existing links can be maintained
-while new links are added in the future. Newer clients may take advantage of the new links, while legacy clients can sustain themselves
+while new links can be added in the future. Newer clients may take advantage of the new links, while legacy clients can sustain themselves
 on the old links. This is especially helpful if services get relocated and moved around. As long as the link structure is maintained,
 clients can STILL find and interact with things.
 
 == Simplifying Link Creation
 
-Did you notice the repetition in single employee link creation? The code to provide a single link to an employee as well as an "employees"
-link to the aggregate root was shown twice. If that raised your concern, good! There's a solution.
+In the code earlier, did you notice the repetition in single employee link creation? The code to provide 
+a single link to an employee, as well as to create an "employees" link to the aggregate root, was shown 
+twice. If that raised your concern, good! There's a solution.
 
-Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. While you could easily
-code this method yourself, there are benefits down the road of implementing Spring HATEOAS's `RepresentationModelAssembler` interface.
+Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. 
+While you could easily code this method yourself, there are benefits down the road of implementing Spring 
+HATEOAS's `RepresentationModelAssembler` interface—which will do the work for you.
 
 .evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [source,java,tabsize=2,indent=0]
@@ -459,19 +488,19 @@ code this method yourself, there are benefits down the road of implementing Spri
 include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
 ----
 
-This simple interface has one method: `toModel()`. It is based on converting a non-model object (`Employee`) into a model-based
-object (`EntityModel<Employee>`).
+This simple interface has one method: `toModel()`. It is based on converting a non-model object 
+(`Employee`) into a model-based object (`EntityModel<Employee>`).
 
-All the code you saw earlier in the controller can be moved into this class. And by applying Spring Framework's `@Component`, this component
-will be automatically created when the app starts.
+All the code you saw earlier in the controller can be moved into this class. And by applying Spring 
+Framework's `@Component` annotation, the assembler will be automatically created when the app starts.
 
-NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I recommend using `EntityModel<T>`
-as your mechanism to easily wrap all POJOs as models.
+NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I 
+recommend using `EntityModel<T>` as your mechanism to easily wrap all POJOs as models.
 
 To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
 
 .Injecting EmployeeModelAssembler into the controller
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=8]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor]
 
@@ -480,16 +509,16 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=constructor
 }
 ----
 
-From here, you can use it in the single-item employee method:
+From here, you can use that assembler in the single-item employee method:
 
 .Getting single item resource using the assembler
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=7]
 ----
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 
-This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you delegate it to the assembler.
-Maybe that doesn't look like much?
+This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you 
+delegate it to the assembler. Maybe that doesn't look like much.
 
 Applying the same thing in the aggregate root controller method is more impressive:
 
@@ -499,10 +528,9 @@ Applying the same thing in the aggregate root controller method is more impressi
 include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
 
-The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`.
-Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
+The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`. Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
 
-IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario, adding hypermedia to your service without hard coding a thing.
+IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario: adding hypermedia to your service without hard coding a thing.
 
 At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
 
@@ -510,30 +538,35 @@ But that is not the only thing needed to build a truly RESTful service with Spri
 
 == Evolving REST APIs
 
-With one additional library and a few lines of extra code, you have added hypermedia to your application. But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact that it's neither a technology stack nor a single standard.
+With one additional library and a few lines of extra code, you have added hypermedia to your application. 
+But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact 
+that it's neither a technology stack nor a single standard.
 
-REST is a collection of architectural constraints that when adopted make your application much more resilient. A key factor of
-resilience is that when you make upgrades to your services, your clients don't suffer from downtime.
+REST is a collection of architectural constraints that when adopted make your application much more
+resilient. A key factor of resilience is that when you make upgrades to your services, your clients 
+don't suffer from downtime.
 
-In the "olden" days, upgrades were notorious for breaking clients. In other words, an upgrade to the server required an update
-to the client. In this day and age, hours or even minutes of downtime spent doing an upgrade can cost millions in
-lost revenue.
+In the "olden" days, upgrades were notorious for breaking clients. In other words, an upgrade to the 
+server required an update to the client. In this day and age, hours or even minutes of downtime spent 
+doing an upgrade can cost millions in lost revenue.
 
-Some companies require that you present management with a plan to minimize downtime. In the past, you could get away
-with upgrading at 2:00 a.m. on a Sunday when load was at a minimum. But in today's Internet-based e-commerce with international
-customers, such strategies are not as effective.
+Some companies require that you present management with a plan to minimize downtime. In the past, you 
+could get away with upgrading at 2:00 a.m. on a Sunday when load was at a minimum. But in today's 
+Internet-based e-commerce with international customers in other time zones, such strategies are not as effective.
 
-SOAP-based services and CORBA-based services were incredibly brittle. It was hard to roll out a server that could support both old and new
-clients. With REST-based practices, it's much easier. Especially using the Spring stack.
+https://www.tutorialspoint.com/soap/what_is_soap.htm[SOAP-based services] and 
+https://www.corba.org/faq.htm[CORBA-based services] were incredibly brittle. It was hard to roll out a
+server that could support both old and new clients. With REST-based practices, it's much easier. 
+Especially using the Spring stack.
 
 === Supporting changes to the API
-Imagine this design problem: You've rolled out a system with this `Employee` -based record. The system is a major hit. You've sold
-your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
+Imagine this design problem: You've rolled out a system with this `Employee`-based record. The system is a major hit. You've sold your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
 
 Uh oh. Didn't think of that.
 
-Before you open up the `Employee` class and replace the single field `name` with `firstName` and `lastName`, stop and think for a second.
-Will that break any clients? How long will it take to upgrade them. Do you even control all the clients accessing your services?
+Before you open up the `Employee` class and replace the single field `name` with `firstName` and 
+lastName`, stop and think for a second. Will that break any clients? How long will it take to upgrade 
+them. Do you even control all the clients accessing your services?
 
 Downtime = lost money. Is management ready for that?
 
@@ -542,7 +575,9 @@ There is an old strategy that precedes REST by years.
 [quote, Unknown]
 Never delete a column in a database.
 
-You can always add columns (fields) to a database table. But don't take one away. The principle in RESTful services is the same.
+You can always add columns (fields) to a database table. But don't take one away. The principle in RESTful 
+services is the same. 
+
 Add new fields to your JSON representations, but don't take any away. Like this:
 
 .JSON that supports multiple clients
@@ -574,7 +609,7 @@ And not only should you show this information in both the "old way" and the "new
 How? Simple. Like this:
 
 .Employee record that handles both "old" and "new" clients
-[source,java,tabsize=2,indent=0]
+[source,java,tabsize=2,indent=0,highlight=26-34]
 ----
 include::evolution/src/main/java/payroll/Employee.java[]
 ----
@@ -585,8 +620,8 @@ This class is very similar to the previous version of `Employee`. Let's go over 
 * A "virtual" getter for the old `name` property, `getName()` is defined. It uses the `firstName` and `lastName` fields to produce a value.
 * A "virtual" setter for the old `name` property is also defined, `setName()`. It parses an incoming string and stores it into the proper fields.
 
-Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But it's surely not impossible
-to come up with a set of transforms for most scenarios, ehh?
+Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But 
+it's surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
@@ -1004,27 +1039,28 @@ of a change in the data. And Spring HATEOAS eases building the hypermedia you ne
 
 == Summary
 
-Throughout this tutorial, you have engaged in various tactics to build REST API. As it turns out, REST isn't just about
-pretty URIs and returning JSON instead of XML.
+Throughout this tutorial, you have engaged in various tactics to build REST APIs. As it turns out, REST isn't just about pretty URIs and returning JSON instead of XML.
 
 Instead, the following tactics help make your services less likely to break existing clients you may or may not control:
 
 * Don't remove old fields. Instead, support them.
 * Use rel-based links so clients don't have to hard code URIs.
-* Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients have a path onto the newer features.
+* Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients 
+  have a path onto the newer features.
 * Use links, not payload data, to instruct clients when various state-driving operations are available.
 
-It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each resource type and to use these components
-in all of your controllers. But this extra bit of server-side setup (made easy thanks to Spring HATEOAS) can ensure the
-clients you control (and more importantly, those you don't) can upgrade with ease as you evolve your API.
+It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each 
+resource type and to use these components in all of your controllers. But this extra bit of server-side 
+setup (made easy thanks to Spring HATEOAS) can ensure the clients you control (and more importantly, those 
+you don't) can upgrade with ease as you evolve your API.
 
 This concludes our tutorial on how to build RESTful services using Spring. Each section of this tutorial is managed as a separate
 subproject in a single github repo:
 
-* *nonrest* - Simple Spring MVC app with no hypermedia
-* *rest* - Spring MVC + Spring HATEOAS app with HAL representations of each resource
-* *evolution* - REST app where a field is evolved but old data is retained for backward compatibility
-* *links* - REST app where conditional links are used to signal valid state changes to clients
+* *nonrest* — Simple Spring MVC app with no hypermedia
+* *rest* — Spring MVC + Spring HATEOAS app with HAL representations of each resource
+* *evolution* — REST app where a field is evolved but old data is retained for backward compatibility
+* *links* — REST app where conditional links are used to signal valid state changes to clients
 
 To view more examples of using Spring HATEOAS see https://github.com/spring-projects/spring-hateoas-examples.
 
