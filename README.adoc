@@ -565,7 +565,7 @@ Imagine this design problem: You've rolled out a system with this `Employee`-bas
 Uh oh. Didn't think of that.
 
 Before you open up the `Employee` class and replace the single field `name` with `firstName` and 
-lastName`, stop and think for a second. Will that break any clients? How long will it take to upgrade 
+`lastName`, stop and think for a second. Will that break any clients? How long will it take to upgrade
 them. Do you even control all the clients accessing your services?
 
 Downtime = lost money. Is management ready for that?
