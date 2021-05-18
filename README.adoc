@@ -115,7 +115,7 @@ include::nonrest/src/main/java/payroll/PayrollApplication.java[]
 `@SpringBootApplication` is a meta-annotation that pulls in *component scanning*, *autoconfiguration*, and *property support*. We won't dive
 into the details of Spring Boot in this tutorial, but in essence, it will fire up a servlet container and serve up our service.
 
-Nevertheless, an application with no data isn't very interesting, so let's preload it. The follow class will get loaded automatically by Spring:
+Nevertheless, an application with no data isn't very interesting, so let's preload it. The following class will get loaded automatically by Spring:
 
 .nonrest/src/main/java/payroll/LoadDatabase.java
 [source,java,tabsize=2,indent=0]
