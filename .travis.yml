@@ -1,6 +1,0 @@
-language: java
-jdk:
-- openjdk8
-notifications:
-  slack:
-    secure: YwQz3uubmEHRiuzVqoJ694o4iPDrG5QWswwAyAn8gy1VW72gG4FgQcgqHS53yCd3Xd4cG8NHS/aS0iyfWAGpi3HLguarhtPi1m6mbXxZPFjfCeNz1Qj7tZ5iuHmMquJy8oBvwCEe5kOMBlc0GtwpYmFtZR2I9nNE1qwC5vjcWSs=
