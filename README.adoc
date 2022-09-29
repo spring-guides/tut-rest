@@ -381,7 +381,7 @@ curl -v localhost:8080/employees/1 | json_pp
 }
 ----
 
-This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
+This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using https://stateless.group/hal_specification.html[HAL].
 
 HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
 there is a "self" link (kind of like a `this` statement in code) along with a link back to the *https://www.google.com/search?q=What+is+an+aggregate+root[aggregate root]*.
