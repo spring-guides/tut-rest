@@ -35,6 +35,7 @@ class Employee {
 
 	public void setId(Long id) {
 		this.id = id;
+		System.out.println("Hello");
 	}
 
 	public void setName(String name) {
