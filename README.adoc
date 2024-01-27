@@ -817,7 +817,6 @@ With this in place, you can now define a basic `OrderController`:
 [source,java,tabsize=2]
 ----
 include::links/src/main/java/payroll/OrderController.java[tag=main]
-}
 ----
 
 * It contains the same REST controller setup as the controllers you've built so far.
@@ -825,6 +824,15 @@ include::links/src/main/java/payroll/OrderController.java[tag=main]
 * The first two Spring MVC routes handle the aggregate root as well as a single item `Order` resource request.
 * The third Spring MVC route handles creating new orders, by starting them in the `IN_PROGRESS` state.
 * All the controller methods return one of Spring HATEOAS's `RepresentationModel` subclasses to properly render hypermedia (or a wrapper around such a type).
+* `OrderNotFoundException` is an exception used to indicate when an order is looked up but not found.
+
+.links/src/main/java/payroll/OrderNotFoundException.java
+[source,java,tabsize=2]
+----
+include::links/src/main/java/payroll/OrderNotFoundException.java[tag=main]
+----
+
+When an `OrderNotFoundException` is thrown, this extra tidbit of Spring MVC configuration is used to render an *HTTP 404*.
 
 Before building the `OrderModelAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
 `Status.IN_PROGRESS`, `Status.COMPLETED`, and `Status.CANCELLED`. A natural thing when serving up such data to clients is to
