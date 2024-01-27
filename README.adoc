@@ -335,6 +335,9 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 [NOTE]
 ====
 This tutorial is based on Spring MVC and uses the static helper methods from `WebMvcLinkBuilder` to build these links.
+
+Required import: `import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;`
+
 If you are using Spring WebFlux in your project, you must instead use `WebFluxLinkBuilder`.
 ====
 
