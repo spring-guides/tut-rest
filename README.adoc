@@ -46,9 +46,8 @@ we will use the Spring portfolio to build a RESTful service while leveraging the
 To get started, you will need:
 
 * A favorite text editor or IDE. For example:
-** link:/guides/gs/sts[Spring Tool Suite (STS)]
-** link:/guides/gs/intellij-idea/[IntelliJ IDEA]
-** link:/guides/gs/guides-with-vscode/[VSCode]
+** https://www.jetbrains.com/idea/[IntelliJ IDEA]
+** https://code.visualstudio.com/[VSCode]
 * https://www.oracle.com/java/technologies/downloads/[Java 17] or later
 
 As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and add the following dependencies to a project:
@@ -61,20 +60,25 @@ Change the Name to "Payroll" and then choose "Generate Project". A `.zip` will d
 
 To complete the tutorial you could start a new project from scratch or you could look to the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
 
-If you choose to create your own blank project, this tutorial will walk you through building your application sequentially. You will not have multiple modules.
+If you choose to create your own blank project, this tutorial will walk you through building your application sequentially.You will not have multiple modules.
 
-If you choose to use the completed GitHub repository, the solutions are divided into 4 sections that track different sections of this tutorial. Modules were used so that lessons could be observed independently and in more consumable pieces. The modules in the solution repository map to the following headers:
+Rather than providing a single, final solution, the https://github.com/spring-guides/tut-rest[completed GitHub repository] uses modules to separate the solution into four parts.
+The modules in the GitHub solution repository build on one another, with the `links` module containing the final solution.
+The modules map to the following headers:
 
-* <<_the_story_so_far_, The Story So Far (nonrest)>>
+* <<_the_story_so_far, The Story So Far (nonrest)>>
 * <<_spring_hateoas, Spring HATEOAS (rest)>>
 * <<_simplifying_link_creation, Simplifying Link Creation (evolution)>>
 * <<_building_links_into_your_rest_api, Building links into your REST API (links)>>
 
-== The Story so Far...
+[#_the_story_so_far]
+== The Story so Far
 
 NOTE: This tutorial starts by building up the code in the https://github.com/spring-guides/tut-rest/tree/main/nonrest[`nonrest` module].
 
-Let's start off with the simplest thing we can construct. In fact, to make it as simple as possible, we can even leave out the concepts of REST. (Later on, we'll add REST to understand the difference.)
+Let's start off with the simplest thing we can construct.
+In fact, to make it as simple as possible, we can even leave out the concepts of REST.
+(Later on, we'll add REST to understand the difference.)
 
 :abbr-jpa: pass:[<abbr title="Java Persistence API—basically it lets you map Java objects to relational database tables.">JPA</abbr>]
 
@@ -97,7 +101,7 @@ Despite being small, this Java class contains much:
 
 * `@Entity` is a JPA annotation to make this object ready for storage in a JPA-based data store.
 * `id`, `name`, and `role` are attributes of our Employee domain object. `id` is  marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
-* a custom constructor is created when we need to create a new instance, but don't yet have an id.
+* A custom constructor is created when we need to create a new instance, but don't yet have an id.
 
 With this domain object definition, we can now turn to https://spring.io/guides/gs/accessing-data-jpa/[Spring Data JPA] to handle the tedious database interactions.
 
@@ -105,7 +109,7 @@ Spring Data JPA repositories are interfaces with methods supporting creating, re
 
 NOTE: There are multiple repository implementations besides JPA. You can use https://spring.io/projects/spring-data-mongodb#overview[Spring Data MongoDB], https://spring.io/projects/spring-data-cassandra#overview[Spring Data Cassandra], etc. For this tutorial, we'll stick with JPA.
 
-Spring makes accessing data easy. By simply declaring the following `EmployeeRepository` interface we automatically will be able to 
+Spring makes accessing data easy. By simply declaring the following `EmployeeRepository` interface we automatically will be able to
 
 * Create new Employees
 * Update existing ones
@@ -359,6 +363,7 @@ ____
 
 The side effect of NOT including hypermedia in our representations is that clients MUST hard code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It's a signal that our JSON output needs a little help.
 
+[#_spring_hateoas]
 == Spring HATEOAS
 
 Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add this to your build:
@@ -387,7 +392,7 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 ====
 
-You will also need to include new imports
+You will also need to include new imports:
 [%collapsible%open]
 ====
 [source,java]
@@ -451,25 +456,31 @@ curl -v localhost:8080/employees/1 | json_pp
 This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
 
 HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
-there is a "self" link (kind of like a `this` statement in code) along with a link back to the *https://www.google.com/search?q=What+is+an+aggregate+root[aggregate root]*.
+there is a "self" link (kind of like a `this` statement in code) along with a link back to the *aggregate root*.
 
 To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within.
 
-So we turn this (in the `nonrest` module of the completed code)
+So we turn this (located in the `nonrest` module of the completed code):
 
 .Getting an aggregate root
+[%collapsible%open]
+====
 [source,java,tabsize=2,indent=0]
 ----
 include::nonrest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
+====
 
-into this (in the `rest` module of the completed code)
+into this (located in the `rest` module of the completed code):
 
 .Getting an aggregate root *resource*
+[%collapsible%open]
+====
 [source,java,tabsize=2,indent=0]
 ----
 include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-root]
 ----
+====
 
 Wow! That method, which used to just be `repository.findAll()`, is all grown up! Not to worry. Let's unpack it.
 
@@ -548,6 +559,7 @@ This is especially helpful if services get relocated and moved around.
 As long as the link structure is maintained,
 clients can STILL find and interact with things.
 
+[#_simplifying_link_creation]
 == Simplifying Link Creation
 
 NOTE: If you are following along in the https://github.com/spring-guides/tut-rest[solution repository], the next section switches to the https://github.com/spring-guides/tut-rest/tree/main/evolution[evolution module].
@@ -759,7 +771,7 @@ import org.springframework.http.ResponseEntity;
 With these tweaks in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
 
 ----
-$ curl -v -X POST localhost:8080/employees -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
+$ curl -v -X POST localhost:8080/employees -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}' | json_pp
 ----
 
 The output is shown below:
@@ -818,7 +830,7 @@ static method `created()` where we can plug in the resource's URI.
 It's debatable if *HTTP 201 Created* carries the right semantics since we aren't necessarily "creating" a new resource. But it comes pre-loaded with a *Location* response header, so run with it. Restart your application, run the following command and observe the results:
 
 ----
-$ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}'
+$ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}' | json_pp
 ----
 
 [%collapsible%open]
@@ -896,6 +908,7 @@ You are now ready for an upgrade that will NOT disturb existing clients while ne
 By the way, are you worried about sending too much information over the wire? In some systems where every byte counts,
 evolution of APIs may need to take a backseat. But don't pursue such premature optimization until you measure.
 
+[#_building_links_into_your_rest_api]
 == Building links into your REST API
 
 NOTE: If you are following along in the https://github.com/spring-guides/tut-rest[solution repository], the next section switches to the https://github.com/spring-guides/tut-rest/tree/main/links[links module].
@@ -905,7 +918,7 @@ To grow your API and better serve your clients, you need to embrace the concept 
 
 What does that mean? In this section, you'll explore it in detail.
 
-Business logic inevitably builds up rules that involve processes
+Business logic inevitably builds up rules that involve processes.
 The risk of such systems is we often carry such server-side logic into clients and build up strong coupling.
 REST is about breaking down such connections and minimizing such coupling.
 
