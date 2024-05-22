@@ -12,23 +12,24 @@ projects: [spring-framework, spring-hateoas, spring-security, spring-security-oa
 
 = Building REST Services with Spring
 
-REST has quickly become the de-facto standard for building web services on the web because they're easy to build and easy to consume.
+REST has quickly become the de facto standard for building web services on the web because REST services are easy to build and easy to consume.
 
-There's a much larger discussion to be had about how REST fits in the world of microservices, but — for this tutorial — let's just look at building RESTful services.
+A much larger discussion can be had about how REST fits in the world of microservices.
+However, for this tutorial, we look only at building RESTful services.
 
-Why REST? REST embraces the precepts of the web, including its architecture, benefits, and everything else. This is no surprise given its author, Roy Fielding, was involved
+Why REST? REST embraces the precepts of the web, including its architecture, benefits, and everything else. This is no surprise, given that its author (Roy Fielding) was involved
 in probably a dozen specs which govern how the web operates.
 
 What benefits? The web and its core protocol, HTTP, provide a stack of features:
 
-* Suitable actions (`GET`, `POST`, `PUT`, `DELETE`, ...)
+* Suitable actions (`GET`, `POST`, `PUT`, `DELETE`, and others)
 * Caching
 * Redirection and forwarding
 * Security (encryption and authentication)
 
-These are all critical factors on building resilient services. But that is not all. The web is built out of lots of tiny specs, hence it's been able to evolve easily, without getting bogged down in "standards wars".
+These are all critical factors when building resilient services. However, that is not all. The web is built out of lots of tiny specs. This architecture lets it easily evolve without getting bogged down in "standards wars".
 
-Developers are able to draw upon 3rd party toolkits that implement these diverse specs and instantly have both client and server technology at their fingertips.
+Developers can draw upon third-party toolkits that implement these diverse specs and instantly have both client and server technology at their fingertips.
 
 By building on top of HTTP, REST APIs provide the means to build:
 
@@ -38,29 +39,28 @@ By building on top of HTTP, REST APIs provide the means to build:
 * Securable services
 * A spectrum of stateless to stateful services
 
-What's important to realize is that REST, however ubiquitous, is not a standard, _per se_, but an approach, a style, a set of _constraints_ on your architecture that can help you build web-scale systems. In this tutorial
-we will use the Spring portfolio to build a RESTful service while leveraging the stackless features of REST.
+Note that REST, however ubiquitous, is not a standard _per se_ but an approach, a style, a set of _constraints_ on your architecture that can help you build web-scale systems. This tutorial uses the Spring portfolio to build a RESTful service while takin advantage of the stackless features of REST.
 
 == Getting Started
 
-To get started, you will need:
+To get started, you need:
 
-* A favorite text editor or IDE. For example:
+* A favorite text editor or IDE, such as:
 ** https://www.jetbrains.com/idea/[IntelliJ IDEA]
 ** https://code.visualstudio.com/[VSCode]
 * https://www.oracle.com/java/technologies/downloads/[Java 17] or later
 
-As we work through this tutorial, we'll use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and add the following dependencies to a project:
+As we work through this tutorial, we use https://spring.io/projects/spring-boot[Spring Boot]. Go to https://start.spring.io/[Spring Initializr] and add the following dependencies to a project:
 
 * Spring Web
 * Spring Data JPA
 * H2 Database
 
-Change the Name to "Payroll" and then choose "Generate Project". A `.zip` will download. Unzip it. Inside you'll find a simple, Maven-based project including a `pom.xml` build file (NOTE: You _can_ use Gradle. The examples in this tutorial will be Maven-based.)
+Change the Name to "Payroll" and then choose *Generate Project8. A `.zip` file downloads. Unzip it. Inside, you should find a simple, Maven-based project that includes a `pom.xml` build file. (Note: You can use Gradle. The examples in this tutorial will be Maven-based.)
 
-To complete the tutorial you could start a new project from scratch or you could look to the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
+To complete the tutorial, you could start a new project from scratch or you could look at the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
 
-If you choose to create your own blank project, this tutorial will walk you through building your application sequentially.You will not have multiple modules.
+If you choose to create your own blank project, this tutorial walks you through building your application sequentially. You do not need multiple modules.
 
 Rather than providing a single, final solution, the https://github.com/spring-guides/tut-rest[completed GitHub repository] uses modules to separate the solution into four parts.
 The modules in the GitHub solution repository build on one another, with the `links` module containing the final solution.
@@ -76,17 +76,17 @@ The modules map to the following headers:
 
 NOTE: This tutorial starts by building up the code in the https://github.com/spring-guides/tut-rest/tree/main/nonrest[`nonrest` module].
 
-Let's start off with the simplest thing we can construct.
+We start off with the simplest thing we can construct.
 In fact, to make it as simple as possible, we can even leave out the concepts of REST.
-(Later on, we'll add REST to understand the difference.)
+(Later on, we add REST, to understand the difference.)
 
-:abbr-jpa: pass:[<abbr title="Java Persistence API—basically it lets you map Java objects to relational database tables.">JPA</abbr>]
+:abbr-jpa: pass:[<abbr title="Java Persistence API -— basically it lets you map Java objects to relational database tables.">JPA</abbr>]
 
-:abbr-mvc: pass:[<abbr title="Model-View-Controller—it'll be explained later.">MVC</abbr>]
+:abbr-mvc: pass:[<abbr title="Model-View-Controller —- it is explained later.">MVC</abbr>]
 
-Big picture: We're going to create a simple payroll service that manages the employees of a company. We'll store employee objects in a (H2 in-memory) database, and access them (via something called {abbr-jpa}). Then we'll wrap that with something that will allow access over the internet (called the Spring {abbr-mvc} layer).
+Big picture: We are going to create a simple payroll service that manages the employees of a company. We store employee objects in a (H2 in-memory) database, and access them (through something called {abbr-jpa}). Then we wrap that with something that allows access over the internet (called the Spring {abbr-mvc} layer).
 
-The following code defines an Employee in our system.
+The following code defines an `Employee` in our system.
 
 .nonrest/src/main/java/payroll/Employee.java
 [%collapsible%open]
@@ -100,21 +100,21 @@ include::nonrest/src/main/java/payroll/Employee.java[]
 Despite being small, this Java class contains much:
 
 * `@Entity` is a JPA annotation to make this object ready for storage in a JPA-based data store.
-* `id`, `name`, and `role` are attributes of our Employee domain object. `id` is  marked with more JPA annotations to indicate it's the primary key and automatically populated by the JPA provider.
-* A custom constructor is created when we need to create a new instance, but don't yet have an id.
+* `id`, `name`, and `role` are attributes of our `Employee` domain object. `id` is  marked with more JPA annotations to indicate that it is the primary key and is automatically populated by the JPA provider.
+* A custom constructor is created when we need to create a new instance but do not yet have an `id`.
 
 With this domain object definition, we can now turn to https://spring.io/guides/gs/accessing-data-jpa/[Spring Data JPA] to handle the tedious database interactions.
 
-Spring Data JPA repositories are interfaces with methods supporting creating, reading, updating, and deleting records against a back end data store. Some repositories also support data paging, and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
+Spring Data JPA repositories are interfaces with methods that support creating, reading, updating, and deleting records against a back end data store. Some repositories also support data paging and sorting, where appropriate. Spring Data synthesizes implementations based on conventions found in the naming of the methods in the interface.
 
-NOTE: There are multiple repository implementations besides JPA. You can use https://spring.io/projects/spring-data-mongodb#overview[Spring Data MongoDB], https://spring.io/projects/spring-data-cassandra#overview[Spring Data Cassandra], etc. For this tutorial, we'll stick with JPA.
+NOTE: There are multiple repository implementations besides JPA. You can use https://spring.io/projects/spring-data-mongodb#overview[Spring Data MongoDB], https://spring.io/projects/spring-data-cassandra#overview[Spring Data Cassandra], and others. This tutorial sticks with JPA.
 
-Spring makes accessing data easy. By simply declaring the following `EmployeeRepository` interface we automatically will be able to
+Spring makes accessing data easy. By declaring the following `EmployeeRepository` interface, we can automatically:
 
-* Create new Employees
-* Update existing ones
-* Delete Employees
-* Find Employees (one, all, or search by simple or complex properties)
+* Create new employees
+* Update existing employees
+* Delete employees
+* Find employees (one, all, or search by simple or complex properties)
 
 
 .nonrest/src/main/java/payroll/EmployeeRepository.java
@@ -126,11 +126,11 @@ include::nonrest/src/main/java/payroll/EmployeeRepository.java[]
 ----
 ====
 
-To get all this free functionality, all we had to do was declare an interface which extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the id type as `Long`.
+To get all this free functionality, all we have to do is declare an interface that extends Spring Data JPA's `JpaRepository`, specifying the domain type as `Employee` and the `id` type as `Long`.
 
-Spring Data's https://docs.spring.io/spring-data/jpa/reference/repositories.html[repository solution] makes it possible to sidestep data store specifics and instead solve a majority of problems using domain-specific terminology.
+Spring Data's https://docs.spring.io/spring-data/jpa/reference/repositories.html[repository solution] makes it possible to sidestep data store specifics and, instead, solve a majority of problems by using domain-specific terminology.
 
-Believe it or not, this is enough to launch an application! A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@SpringBootApplication` annotation. This tells Spring Boot to help out, wherever possible.
+Believe it or not, this is enough to launch an application! A Spring Boot application is, at a minimum, a `public static void main` entry-point and the `@SpringBootApplication` annotation. This tells Spring Boot to help out wherever possible.
 
 .nonrest/src/main/java/payroll/PayrollApplication.java
 [%collapsible%open]
@@ -141,10 +141,10 @@ include::nonrest/src/main/java/payroll/PayrollApplication.java[]
 ----
 ====
 
-`@SpringBootApplication` is a meta-annotation that pulls in *component scanning*, *autoconfiguration*, and *property support*. We won't dive
-into the details of Spring Boot in this tutorial, but in essence, it will fire up a servlet container and serve up our service.
+`@SpringBootApplication` is a meta-annotation that pulls in *component scanning*, *auto-configuration*, and *property support*. We do not dive
+into the details of Spring Boot in this tutorial. However, in essence, it starts a servlet container and serves up our service.
 
-Nevertheless, an application with no data isn't very interesting, so let's preload it. The following class will get loaded automatically by Spring:
+An application with no data is not very interesting, so we preload that it has data. The following class gets loaded automatically by Spring:
 
 .nonrest/src/main/java/payroll/LoadDatabase.java
 [%collapsible%open]
@@ -157,11 +157,11 @@ include::nonrest/src/main/java/payroll/LoadDatabase.java[]
 
 What happens when it gets loaded?
 
-* Spring Boot will run ALL `CommandLineRunner` beans once the application context is loaded.
-* This runner will request a copy of the `EmployeeRepository` you just created.
-* Using it, it will create two entities and store them.
+* Spring Boot runs ALL `CommandLineRunner` beans once the application context is loaded.
+* This runner requests a copy of the `EmployeeRepository` you just created.
+* The runner creates two entities and stores them.
 
-Right-click and *Run* `PayRollApplication`, and this is what you get:
+Right-click and *Run* `PayRollApplication`, and you get:
 
 .Fragment of console output showing preloading of data
 [%collapsible%open]
@@ -174,11 +174,11 @@ Right-click and *Run* `PayRollApplication`, and this is what you get:
 ----
 ====
 
-This isn't the *whole* log, but just the key bits of preloading data. (Indeed, check out the whole console. It's glorious.)
+This is not the *whole* log, but only the key bits of preloading data.
 
 == HTTP is the Platform
 
-To wrap your repository with a web layer, you must turn to Spring MVC. Thanks to Spring Boot, there is little in infrastructure to code. Instead, we can focus on actions:
+To wrap your repository with a web layer, you must turn to Spring MVC. Thanks to Spring Boot, you need add only a little code. Instead, we can focus on actions:
 
 .nonrest/src/main/java/payroll/EmployeeController.java
 [%collapsible%open]
@@ -189,9 +189,9 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[]
 ----
 ====
 
-* `@RestController` indicates that the data returned by each method will be written straight into the response body instead of rendering a template.
+* `@RestController` indicates that the data returned by each method is written straight into the response body instead of rendering a template.
 * An `EmployeeRepository` is injected by constructor into the controller.
-* We have routes for each operation (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (NOTE: It's useful to read each method and understand what they do.)
+* We have routes for each operation (`@GetMapping`, `@PostMapping`, `@PutMapping` and `@DeleteMapping`, corresponding to HTTP `GET`, `POST`, `PUT`, and `DELETE` calls). (We recommend reading each method and understanding what they do.)
 * `EmployeeNotFoundException` is an exception used to indicate when an employee is looked up but not found.
 
 .nonrest/src/main/java/payroll/EmployeeNotFoundException.java
@@ -203,7 +203,7 @@ include::nonrest/src/main/java/payroll/EmployeeNotFoundException.java[]
 ----
 ====
 
-When an `EmployeeNotFoundException` is thrown, this extra tidbit of Spring MVC configuration is used to render an *HTTP 404*:
+When an `EmployeeNotFoundException` is thrown, this extra tidbit of Spring MVC configuration is used to render an *HTTP 404* error:
 
 .nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java
 [%collapsible%open]
@@ -215,31 +215,32 @@ include::nonrest/src/main/java/payroll/EmployeeNotFoundAdvice.java[]
 ====
 
 * `@RestControllerAdvice` signals that this advice is rendered straight into the response body.
-* `@ExceptionHandler` configures the advice to only respond if an `EmployeeNotFoundException` is thrown.
-* `@ResponseStatus` says to issue an `HttpStatus.NOT_FOUND`, i.e. an *HTTP 404*.
+* `@ExceptionHandler` configures the advice to only respond when an `EmployeeNotFoundException` is thrown.
+* `@ResponseStatus` says to issue an `HttpStatus.NOT_FOUND` -- that is, an *HTTP 404* error.
 * The body of the advice generates the content. In this case, it gives the message of the exception.
 
-To launch the application, either right-click the `public static void main` in `PayRollApplication` and select *Run* from your IDE, or:
+To launch the application, you can right-click the `public static void main` in `PayRollApplication` and select *Run* from your IDE.
 
-Spring Initializr uses maven wrapper so type this:
+Alternatively, Spring Initializr creates a Maven wrapper, so you can run the following command:
 
 ----
 $ ./mvnw clean spring-boot:run
 ----
 
-Alternatively using your installed maven version type this:
+Alternatively, you can use your installed Maven version, as follows:
 
 ----
 $ mvn clean spring-boot:run
 ----
 
-When the app starts, we can immediately interrogate it.
+When the app starts, you can immediately interrogate it, as follows:
 
 ----
 $ curl -v localhost:8080/employees
 ----
 
-This will yield:
+Doing so yields the following:
+
 [%collapsible%open]
 ====
 ----
@@ -261,15 +262,15 @@ This will yield:
 ----
 ====
 
-Here you can see the pre-loaded data, in a compacted format.
+You can see the pre-loaded data in a compacted format.
 
-If you try and query a user that doesn't exist...
+Now try to query a user that doesn't exist, as follows:
 
 ----
 $ curl -v localhost:8080/employees/99
 ----
 
-You get...
+When you do so, you get the following output:
 
 [%collapsible%open]
 ====
@@ -292,42 +293,42 @@ Could not find employee 99
 ----
 ====
 
-This message nicely shows an *HTTP 404* error with the custom message *Could not find employee 99*.
+This message nicely shows an *HTTP 404* error with the custom message: `Could not find employee 99`.
 
-It's not hard to show the currently coded interactions...
+It is not hard to show the currently coded interactions.
 
 
 [CAUTION]
 ====
-If you are using Windows Command Prompt to issue cURL commands, chances are the below command won't work properly. You must either pick a terminal that support single quoted arguments, or use double quotes and then escape the ones inside the JSON.
+If you use Windows command prompt to issue cURL commands, the following command probably does not work properly. You must either pick a terminal that support single-quoted arguments, or use double quotation marks and then escape the quotation marks inside the JSON.
 ====
 
-To create a new `Employee` record we use the following command in a terminal—the `$` at the beginning signifies that what follows it is a terminal command:
+To create a new `Employee` record, use the following command in a terminal (the `$` at the beginning signifies that what follows it is a terminal command):
 ----
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
 ----
 
-Then it stores newly created employee and sends it back to us:
+Then it stores the newly created employee and sends it back to us:
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"gardener"}
 ----
 
-You can update the user. Let's change his role.
+You can update the user. For example, you can change the role:
 
 ----
 $ curl -X PUT localhost:8080/employees/3 -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}'
 ----
 
-And we can see the change reflected in the output.
+Now we can see the change reflected in the output:
 
 ----
 {"id":3,"name":"Samwise Gamgee","role":"ring bearer"}
 ----
 
-WARNING: The way you construct your service can have significant impacts. In this situation, we said *update*, but *replace* is a better description. For example, if the name was NOT provided, it would instead get nulled out.
+CAUTION: The way you construct your service can have significant impacts. In this situation, we said *update*, but *replace* is a better description. For example, if the name was NOT provided, it would instead get nulled out.
 
-Finally, you can delete users like this:
+Finally, you can delete users, as follows:
 
 ----
 $ curl -X DELETE localhost:8080/employees/3
@@ -337,19 +338,19 @@ $ curl localhost:8080/employees/3
 Could not find employee 3
 ----
 
-This is all well and good, but do we have a RESTful service yet? (If you didn't catch the hint, the answer is no.)
+This is all well and good, but do we have a RESTful service yet? (The answer is no.)
 
 What's missing?
 
-== What makes something RESTful?
+== What Makes a Service RESTful?
 
-So far, you have a web-based service that handles the core operations involving employee data. But that's not enough to make things "RESTful".
+So far, you have a web-based service that handles the core operations that involve employee data. However, that is not enough to make things "RESTful".
 
-* Pretty URLs like `/employees/3` aren't REST.
-* Merely using `GET`, `POST`, etc. isn't REST.
-* Having all the CRUD operations laid out isn't REST.
+* Pretty URLs, such as`/employees/3`, aren't REST.
+* Merely using `GET`, `POST`, and so on is not REST.
+* Having all the CRUD operations laid out is not REST.
 
-In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*). That's because there is no way to know how to interact with this service. If you published this today, you'd also have to write a document or host a developer's portal somewhere with all the details.
+In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*), because there is no way to know how to interact with this service. If you published this today, you wouldd also have to write a document or host a developer's portal somewhere with all the details.
 
 This statement of Roy Fielding's may further lend a clue to the difference between *REST* and *RPC*:
 
@@ -361,12 +362,12 @@ What needs to be done to make the REST architectural style clear on the notion t
 ____
 
 
-The side effect of NOT including hypermedia in our representations is that clients MUST hard code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It's a signal that our JSON output needs a little help.
+The side effect of nnot including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
 
 [#_spring_hateoas]
 == Spring HATEOAS
 
-Introducing https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add this to your build:
+Now we can introduce https://spring.io/projects/spring-hateoas[Spring HATEOAS], a Spring project aimed at helping you write hypermedia-driven outputs. To upgrade your service to being RESTful, add the following to your build:
 
 NOTE: If you are following along in the https://github.com/spring-guides/tut-rest[solution repository], the next section switches to the https://github.com/spring-guides/tut-rest/tree/main/rest[rest module].
 
@@ -379,9 +380,9 @@ include::rest/pom.xml[tag=spring-hateoas]
 ----
 ====
 
-This tiny library will give us the constructs to define a RESTful service and then render it in an acceptable format for client consumption.
+This tiny library gives us the constructs that define a RESTful service and then render it in an acceptable format for client consumption.
 
-A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like this to the existing `one` method in `EmployeeController`:
+A critical ingredient to any RESTful service is adding https://tools.ietf.org/html/rfc8288[links] to relevant operations. To make your controller more RESTful, add links like the following to the existing `one` method in `EmployeeController`:
 
 .Getting a single item resource
 [%collapsible%open]
@@ -392,7 +393,7 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=get-single-item]
 ----
 ====
 
-You will also need to include new imports:
+You also need to include new imports:
 [%collapsible%open]
 ====
 [source,java]
@@ -411,15 +412,15 @@ If you are using Spring WebFlux in your project, you must instead use `WebFluxLi
 This is very similar to what we had before, but a few things have changed:
 
 * The return type of the method has changed from `Employee` to `EntityModel<Employee>`. `EntityModel<T>` is a generic container from Spring HATEOAS that includes not only the data but a collection of links.
-* `linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel()` asks that Spring HATEOAS build a link to the `EmployeeController` 's `one()` method, and flag it as a https://www.iana.org/assignments/link-relations/link-relations.xhtml[self] link.
+* `linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel()` asks that Spring HATEOAS build a link to the `one` method of `EmployeeController` and flag it as a https://www.iana.org/assignments/link-relations/link-relations.xhtml[self] link.
 * `linkTo(methodOn(EmployeeController.class).all()).withRel("employees")` asks Spring HATEOAS to build a link to the aggregate root, `all()`, and call it "employees".
 
-What do we mean by "build a link"? One of Spring HATEOAS's core types is `Link`. It includes a *URI* and a *rel* (relation).
+What do we mean by "build a link?" One of Spring HATEOAS's core types is `Link`. It includes a *URI* and a *rel* (relation).
 Links are what empower the web. Before the World Wide Web, other document systems would render information or links, but it was the linking of documents WITH this kind of relationship metadata that stitched the web together.
 
 Roy Fielding encourages building APIs with the same techniques that made the web successful, and links are one of them.
 
-If you restart the application and query the employee record of _Bilbo_, you'll get a slightly different response than earlier:
+If you restart the application and query the employee record of _Bilbo_, you get a slightly different response than earlier:
 
 [TIP] 
 .Curling prettier
@@ -453,14 +454,14 @@ curl -v localhost:8080/employees/1 | json_pp
 ----
 ====
 
-This decompressed output shows not only the data elements you saw earlier (`id`, `name` and `role`), but also a `_links` entry containing two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
+This decompressed output shows not only the data elements you saw earlier (`id`, `name`, and `role`) but also a `_links` entry that contains two URIs. This entire document is formatted using http://stateless.co/hal_specification.html[HAL].
 
-HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not just data but also hypermedia controls, alerting consumers to other parts of the API they can navigate toward. In this case,
+HAL is a lightweight https://tools.ietf.org/html/draft-kelly-json-hal-08[mediatype] that allows encoding not only data but also hypermedia controls, alerting consumers to other parts of the API to which they can navigate. In this case,
 there is a "self" link (kind of like a `this` statement in code) along with a link back to the *aggregate root*.
 
-To make the aggregate root ALSO more RESTful, you want to include top level links while ALSO including any RESTful components within.
+To make the aggregate root also be more RESTful, you want to include top level links while also including any RESTful components within.
 
-So we turn this (located in the `nonrest` module of the completed code):
+So we modify the following (located in the `nonrest` module of the completed code):
 
 .Getting an aggregate root
 [%collapsible%open]
@@ -471,7 +472,7 @@ include::nonrest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate
 ----
 ====
 
-into this (located in the `rest` module of the completed code):
+We want the following (located in the `rest` module of the completed code):
 
 .Getting an aggregate root *resource*
 [%collapsible%open]
@@ -482,21 +483,21 @@ include::rest/src/main/java/payroll/EmployeeController.java[tag=get-aggregate-ro
 ----
 ====
 
-Wow! That method, which used to just be `repository.findAll()`, is all grown up! Not to worry. Let's unpack it.
+That method, which used to  be merely `repository.findAll()`, is "all grown up."" Not to worry. Now we can unpack it.
 
-`CollectionModel<>` is another Spring HATEOAS container; it's aimed at encapsulating collections of
- resources—instead of a single resource entity, like `EntityModel<>` from earlier. 
+`CollectionModel<>` is another Spring HATEOAS container. It is aimed at encapsulating collections of
+ resources instead of a single resource entity, such as `EntityModel<>` from earlier. 
  `CollectionModel<>`, too, lets you include links.
 
-Don't let that first statement slip by. What does "encapsulating collections" mean? Collections of employees?
+Do not let that first statement slip by. What does "encapsulating collections" mean? Collections of employees?
 
 Not quite.
 
-Since we're talking REST, it should encapsulate collections of *employee resources*.
+Since we are talking REST, it should encapsulate collections of *employee resources*.
 
-That's why you fetch all the employees, but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java 8 Streams!)
+That is why you fetch all the employees but then transform them into a list of `EntityModel<Employee>` objects. (Thanks Java Streams!)
 
-If you restart the application and fetch the aggregate root, you can see what it looks like now.
+If you restart the application and fetch the aggregate root, you can see what it looks like now:
 
 ----
 curl -v localhost:8080/employees | json_pp
@@ -548,16 +549,16 @@ curl -v localhost:8080/employees | json_pp
 ====
 
 For this aggregate root, which serves up a collection of employee resources, there is a top-level *"self"* 
-link. The *"collection"* is listed underneath the *"_embedded"* section; this is how HAL represents collections.
+link. The *"collection"* is listed underneath the *"_embedded"* section. This is how HAL represents collections.
 
-And each individual member of the collection has their information as well as related links.
+Each individual member of the collection has their information as well as related links.
 
 What is the point of adding all these links? It makes it possible to evolve REST services over time.
 Existing links can be maintained while new links can be added in the future.
 Newer clients may take advantage of the new links, while legacy clients can sustain themselves on the old links.
 This is especially helpful if services get relocated and moved around.
 As long as the link structure is maintained,
-clients can STILL find and interact with things.
+clients can still find and interact with things.
 
 [#_simplifying_link_creation]
 == Simplifying Link Creation
@@ -566,11 +567,11 @@ NOTE: If you are following along in the https://github.com/spring-guides/tut-res
 
 In the code earlier, did you notice the repetition in single employee link creation? The code to provide 
 a single link to an employee, as well as to create an "employees" link to the aggregate root, was shown 
-twice. If that raised your concern, good! There's a solution.
+twice. If that raised a concern, good! There's a solution.
 
-Simply put, you need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. 
-While you could easily code this method yourself, there are benefits down the road of implementing Spring 
-HATEOAS's `RepresentationModelAssembler` interface—which will do the work for you. Create a new class `EmployeeModelAssembler` as defined below:
+You need to define a function that converts `Employee` objects to `EntityModel<Employee>` objects. 
+While you could easily code this method yourself, Spring 
+HATEOAS's `RepresentationModelAssembler` interface does the work for you. Create a new class `EmployeeModelAssembler`:
 
 .evolution/src/main/java/payroll/EmployeeModelAssembler.java
 [%collapsible%open]
@@ -584,13 +585,13 @@ include::evolution/src/main/java/payroll/EmployeeModelAssembler.java[]
 This simple interface has one method: `toModel()`. It is based on converting a non-model object 
 (`Employee`) into a model-based object (`EntityModel<Employee>`).
 
-All the code you saw earlier in the controller can be moved into this class. And by applying Spring 
-Framework's `@Component` annotation, the assembler will be automatically created when the app starts.
+All the code you saw earlier in the controller can be moved into this class. Also, by applying Spring 
+Framework's `@Component` annotation, the assembler is automatically created when the app starts.
 
-NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. But for simplicity, I 
+NOTE: Spring HATEOAS's abstract base class for all models is `RepresentationModel`. However, for simplicity, we 
 recommend using `EntityModel<T>` as your mechanism to easily wrap all POJOs as models.
 
-To leverage this assembler, you only have to alter the `EmployeeController` by injecting the assembler in the constructor.
+To leverage this assembler, you have only to alter the `EmployeeController` by injecting the assembler in the constructor:
 
 .Injecting EmployeeModelAssembler into the controller
 [%collapsible%open]
@@ -616,8 +617,8 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-single-
 ----
 ====
 
-This code is almost the same, except instead of creating the `EntityModel<Employee>` instance here, you 
-delegate it to the assembler. Maybe that doesn't look like much.
+This code is almost the same, except that, instead of creating the `EntityModel<Employee>` instance here, you 
+delegate it to the assembler. Maybe that is not impressive.
 
 Applying the same thing in the aggregate root controller method is more impressive. This change is also to the `EmployeeController` class:
 
@@ -630,11 +631,11 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=get-aggrega
 ----
 ====
 
-The code is, again, almost the same, however you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`. Thanks to Java 8 method references, it's super easy to plug it in and simplify your controller.
+The code is, again, almost the same. However, you get to replace all that `EntityModel<Employee>` creation logic with `map(assembler::toModel)`. Thanks to Java method references, it is super easy to plug in and simplify your controller.
 
-IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario: adding hypermedia to your service without hard coding a thing.
+IMPORTANT: A key design goal of Spring HATEOAS is to make it easier to do The Right Thing(TM). In this scenario, that means adding hypermedia to your service without hard coding a thing.
 
-At this stage, you've created a Spring MVC REST controller that actually produces hypermedia-powered content! Clients that don't speak HAL can ignore the extra bits while consuming the pure data. Clients that DO speak HAL can navigate your empowered API.
+At this stage, you have created a Spring MVC REST controller that actually produces hypermedia-powered content. Clients that do not speak HAL can ignore the extra bits while consuming the pure data. Clients that do speak HAL can navigate your empowered API.
 
 But that is not the only thing needed to build a truly RESTful service with Spring.
 
@@ -642,11 +643,11 @@ But that is not the only thing needed to build a truly RESTful service with Spri
 
 With one additional library and a few lines of extra code, you have added hypermedia to your application. 
 But that is not the only thing needed to make your service RESTful. An important facet of REST is the fact 
-that it's neither a technology stack nor a single standard.
+that it is neither a technology stack nor a single standard.
 
-REST is a collection of architectural constraints that when adopted make your application much more
+REST is a collection of architectural constraints that, when adopted, make your application much more
 resilient. A key factor of resilience is that when you make upgrades to your services, your clients 
-don't suffer from downtime.
+do not suffer downtime.
 
 In the "olden" days, upgrades were notorious for breaking clients. In other words, an upgrade to the 
 server required an update to the client. In this day and age, hours or even minutes of downtime spent 
@@ -658,17 +659,18 @@ Internet-based e-commerce with international customers in other time zones, such
 
 https://www.tutorialspoint.com/soap/what_is_soap.htm[SOAP-based services] and 
 https://www.corba.org/faq.htm[CORBA-based services] were incredibly brittle. It was hard to roll out a
-server that could support both old and new clients. With REST-based practices, it's much easier. 
-Especially using the Spring stack.
+server that could support both old and new clients. With REST-based practices, it is much easier, 
+especially using the Spring stack.
 
-=== Supporting changes to the API
-Imagine this design problem: You've rolled out a system with this `Employee`-based record. The system is a major hit. You've sold your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
+=== Supporting Changes to the API
 
-Uh oh. Didn't think of that.
+Imagine this design problem: You have rolled out a system with this `Employee`-based record. The system is a major hit. You have sold your system to countless enterprises. Suddenly, the need for an employee's name to be split into `firstName` and `lastName` arises.
+
+Uh oh. You did not think of that.
 
 Before you open up the `Employee` class and replace the single field `name` with `firstName` and 
-`lastName`, stop and think for a second. Will that break any clients? How long will it take to upgrade
-them. Do you even control all the clients accessing your services?
+`lastName`, stop and think. Does that break any clients? How long will it take to upgrade
+them? Do you even control all the clients accessing your services?
 
 Downtime = lost money. Is management ready for that?
 
@@ -677,10 +679,10 @@ There is an old strategy that precedes REST by years.
 [quote, Unknown]
 Never delete a column in a database.
 
-You can always add columns (fields) to a database table. But don't take one away. The principle in RESTful 
+You can always add columns (fields) to a database table. But do not take one away. The principle in RESTful 
 services is the same. 
 
-Add new fields to your JSON representations, but don't take any away. Like this:
+Add new fields to your JSON representations, but do not take any away. Like this:
 
 .JSON that supports multiple clients
 [%collapsible%open]
@@ -705,13 +707,11 @@ Add new fields to your JSON representations, but don't take any away. Like this:
 ----
 ====
 
-Notice how this format shows `firstName`, `lastName`, AND `name`? While it sports duplication of information, the purpose is to support
-both old and new clients. That means you can upgrade the server without requiring clients upgrade at the same time. A good move
+This format shows `firstName`, `lastName`, and `name`. While it sports duplication of information, the purpose is to support
+both old and new clients. That means you can upgrade the server without requiring clients to upgrade at the same time. This is good move
 that should reduce downtime.
 
-And not only should you show this information in both the "old way" and the "new way", you should also process incoming data both ways.
-
-How? Simple. Like this:
+Not only should you show this information in both the "old way" and the "new way", but you should also process incoming data both ways.
 
 .Employee record that handles both "old" and "new" clients
 [%collapsible%open]
@@ -722,18 +722,18 @@ include::evolution/src/main/java/payroll/Employee.java[]
 ----
 ====
 
-This class is very similar to the previous version of `Employee`. Let's go over the changes:
+This class is similar to the previous version of `Employee`, with a few changes:
 
 * Field `name` has been replaced by `firstName` and `lastName`.
-* A "virtual" getter for the old `name` property, `getName()` is defined. It uses the `firstName` and `lastName` fields to produce a value.
-* A "virtual" setter for the old `name` property is also defined, `setName()`. It parses an incoming string and stores it into the proper fields.
+* A "virtual" getter for the old `name` property, `getName()`, is defined. It uses the `firstName` and `lastName` fields to produce a value.
+* A "virtual" setter for the old `name` property, `setName()`, is also defined. It parses an incoming string and stores it into the proper fields.
 
-Of course not EVERY change to your API is as simple as splitting a string or merging two strings. But 
-it's surely not impossible to come up with a set of transforms for most scenarios, right?
+Of course, not change to your API is as simple as splitting a string or merging two strings. But 
+itis surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
-Don't forget to go and change how you preload your database (in `LoadDatabase`) to use this new constructor.
+Do not forget to change how you preload your database (in `LoadDatabase`) to use this new constructor.
 
 [source,java,tabsize=2,indent=0]
 ----
@@ -741,9 +741,8 @@ include::evolution/src/main/java/payroll/LoadDatabase.java[tag=new_constructor]
 ----
 ====
 
-
 ==== Proper Responses
-Another step in the right direction involves ensuring that each of your REST methods returns a proper response. Update the POST method `newEmployee` in the `EmployeeController` to look like this:
+Another step in the right direction involves ensuring that each of your REST methods returns a proper response. Update the POST method (`newEmployee`) in the `EmployeeController`:
 
 .POST that handles "old" and "new" client requests
 [%collapsible%open]
@@ -754,7 +753,7 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=post]
 ----
 ====
 
-You will also need to add the imports:
+You also need to add the imports:
 [%collapsible%open]
 ====
 [source,java,tabsize=2,indent=0]
@@ -764,17 +763,17 @@ import org.springframework.http.ResponseEntity;
 ----
 ====
 
-* The new `Employee` object is saved as before. But the resulting object is wrapped using the `EmployeeModelAssembler`.
+* The new `Employee` object is saved, as before. However, the resulting object is wrapped in the `EmployeeModelAssembler`.
 * Spring MVC's `ResponseEntity` is used to create an *HTTP 201 Created* status message. This type of response typically includes a *Location* response header, and we use the URI derived from the model's self-related link.
-* Additionally, return the model-based version of the saved object.
+* Additionally, the model-based version of the saved object is returned.
 
-With these tweaks in place, you can use the same endpoint to create a new employee resource, and use the legacy `name` field:
+With these tweaks in place, you can use the same endpoint to create a new employee resource and use the legacy `name` field:
 
 ----
 $ curl -v -X POST localhost:8080/employees -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}' | json_pp
 ----
 
-The output is shown below:
+The output is as follows:
 
 [%collapsible%open]
 ====
@@ -809,10 +808,10 @@ The output is shown below:
 ----
 ====
 
-This not only has the resulting object rendered in HAL (both `name` as well as `firstName`/`lastName`), but also the *Location* header populated with `http://localhost:8080/employees/3`.
-A hypermedia powered client could opt to "surf" to this new resource and proceed to interact with it.
+This not only has the resulting object rendered in HAL (both `name` as well as `firstName` and `lastName`), but also the *Location* header populated with `http://localhost:8080/employees/3`.
+A hypermedia-powered client could opt to "surf" to this new resource and proceed to interact with it.
 
-The PUT controller method `replaceEmployee` in `EmployeeController` needs similar tweaks:
+The PUT controller method (`replaceEmployee`) in `EmployeeController` needs similar tweaks:
 
 .Handling a PUT for different clients
 [%collapsible%open]
@@ -823,11 +822,11 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=put]
 ----
 ====
 
-The `Employee` object built from the `save()` operation is then wrapped using the `EmployeeModelAssembler` into an `EntityModel<Employee>` object. Using the `getRequiredLink()` method, you can retrieve the `Link` created by the `EmployeeModelAssembler` with a `SELF` rel.  This method returns a `Link` which must be turned into a `URI` with the `toUri` method.
+The `Employee` object built by the `save()` operation is then wrapped in the `EmployeeModelAssembler` to create an `EntityModel<Employee>` object. Using the `getRequiredLink()` method, you can retrieve the `Link` created by the `EmployeeModelAssembler` with a `SELF` rel.  This method returns a `Link`, which must be turned into a `URI` with the `toUri` method.
 
-Since we want a more detailed HTTP response code than *200 OK*, we will use Spring MVC's `ResponseEntity` wrapper. It has a handy
-static method `created()` where we can plug in the resource's URI.
-It's debatable if *HTTP 201 Created* carries the right semantics since we aren't necessarily "creating" a new resource. But it comes pre-loaded with a *Location* response header, so run with it. Restart your application, run the following command and observe the results:
+Since we want a more detailed HTTP response code than *200 OK*, we use Spring MVC's `ResponseEntity` wrapper. It has a handy
+static method (`created()`) where we can plug in the resource's URI.
+It is debatable whether *HTTP 201 Created* carries the right semantics, since we do not necessarily "create" a new resource. However, it comes pre-loaded with a *Location* response header, so we use it. Restart your application, run the following command, and observe the results:
 
 ----
 $ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}' | json_pp
@@ -868,7 +867,7 @@ $ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -
 ----
 ====
 
-That employee resource has now been updated and the location URI sent back. Finally, update the DELETE operation `deleteEmployee` in `EmployeeController` suitably:
+That employee resource has now been updated and the location URI has been sent back. Finally, update the DELETE operation (`deleteEmployee`) in `EmployeeController`:
 
 .Handling DELETE requests
 [%collapsible%open]
@@ -879,7 +878,7 @@ include::evolution/src/main/java/payroll/EmployeeController.java[tag=delete]
 ----
 ====
 
-This returns an *HTTP 204 No Content* response.  Restart your application, run the following command and observe the results:
+This returns an *HTTP 204 No Content* response. Restart your application, run the following command, and observe the results:
 
 ----
 $ curl -v -X DELETE localhost:8080/employees/1
@@ -900,23 +899,23 @@ $ curl -v -X DELETE localhost:8080/employees/1
 ----
 ====
 
-IMPORTANT: Making changes to the fields in the `Employee` class will require coordination with your database team, so
+IMPORTANT: Making changes to the fields in the `Employee` class requires coordination with your database team, so
 that they can properly migrate existing content into the new columns.
 
-You are now ready for an upgrade that will NOT disturb existing clients while newer clients can take advantage of the enhancements!
+You are now ready for an upgrade that does not disturb existing clients while newer clients can take advantage of the enhancements.
 
 By the way, are you worried about sending too much information over the wire? In some systems where every byte counts,
-evolution of APIs may need to take a backseat. But don't pursue such premature optimization until you measure.
+evolution of APIs may need to take a backseat. However, you should not pursue such premature optimization until you measure the impact of your changes.
 
 [#_building_links_into_your_rest_api]
 == Building links into your REST API
 
 NOTE: If you are following along in the https://github.com/spring-guides/tut-rest[solution repository], the next section switches to the https://github.com/spring-guides/tut-rest/tree/main/links[links module].
 
-So far, you've built an evolvable API with bare bones links.
+So far, you have built an evolvable API with bare bones links.
 To grow your API and better serve your clients, you need to embrace the concept of *Hypermedia as the Engine of Application State*.
 
-What does that mean? In this section, you'll explore it in detail.
+What does that mean? This section explores it in detail.
 
 Business logic inevitably builds up rules that involve processes.
 The risk of such systems is we often carry such server-side logic into clients and build up strong coupling.
@@ -935,7 +934,7 @@ include::links/src/main/java/payroll/Order.java[]
 ----
 ====
 
-* The class requires a JPA `@Table` annotation changing the table's name to `CUSTOMER_ORDER` because `ORDER` is not a valid name for table.
+* The class requires a JPA `@Table` annotation that changes the table's name to `CUSTOMER_ORDER` because `ORDER` is not a valid name for table.
 * It includes a `description` field as well as a `status` field.
 
 Orders must go through a certain series of state transitions from the time a customer submits an order and it is either
@@ -950,7 +949,7 @@ include::links/src/main/java/payroll/Status.java[]
 ----
 ====
 
-This `enum` captures the various states an `Order` can occupy. For this tutorial, let's keep it simple.
+This `enum` captures the various states an `Order` can occupy. For this tutorial, we keep it simple.
 
 To support interacting with orders in the database, you must define a corresponding Spring Data repository called `OrderRepository`:
 
@@ -964,7 +963,7 @@ interface OrderRepository extends JpaRepository<Order, Long> {
 ----
 ====
 
-We also need to create a new exception class `OrderNotFoundException`:
+We also need to create a new exception class called `OrderNotFoundException`:
 [%collapsible%open]
 ====
 [source,java,tabsize=2]
@@ -1006,15 +1005,15 @@ include::links/src/main/java/payroll/OrderController.java[tag=main]
 ----
 ====
 
-* It contains the same REST controller setup as the controllers you've built so far.
-* It injects both an `OrderRepository` as well as a (not yet built) `OrderModelAssembler`.
+* It contains the same REST controller setup as the controllers you have built so far.
+* It injects both an `OrderRepository` and a (not yet built) `OrderModelAssembler`.
 * The first two Spring MVC routes handle the aggregate root as well as a single item `Order` resource request.
 * The third Spring MVC route handles creating new orders, by starting them in the `IN_PROGRESS` state.
 * All the controller methods return one of Spring HATEOAS's `RepresentationModel` subclasses to properly render hypermedia (or a wrapper around such a type).
 
-Before building the `OrderModelAssembler`, let's discuss what needs to happen. You are modeling the flow of states between
+Before building the `OrderModelAssembler`, we should discuss what needs to happen. You are modeling the flow of states between
 `Status.IN_PROGRESS`, `Status.COMPLETED`, and `Status.CANCELLED`. A natural thing when serving up such data to clients is to
-let the clients make the decision on what it can do based on this payload.
+let the clients make the decision about what they can do, based on this payload.
 
 But that would be wrong.
 
@@ -1025,13 +1024,13 @@ That would most likely break all the clients.
 
 Enter *HATEOAS* or *Hypermedia as the Engine of Application State*. Instead of clients parsing the payload, give them links
 to signal valid actions. Decouple state-based actions from the payload of data. In other words, when *CANCEL* and *COMPLETE* are valid actions,
-dynamically add them to the list of links. Clients only need show users the corresponding buttons when the links exist.
+you should dynamically add them to the list of links. Clients need to show users the corresponding buttons only when the links exist.
 
-This decouples clients from having to know WHEN such actions are valid, reducing the risk of the server and its clients getting
+This decouples clients from having to know when such actions are valid, reducing the risk of the server and its clients getting
 out of sync on the logic of state transitions.
 
-Having already embraced the concept of Spring HATEOAS `RepresentationModelAssembler` components, putting such logic in the `OrderModelAssembler`
-would be the perfect place to capture this business rule:
+Having already embraced the concept of Spring HATEOAS `RepresentationModelAssembler` components, the `OrderModelAssembler`
+is the perfect place to capture the logic for this business rule:
 
 .links/src/main/java/payroll/OrderModelAssembler.java
 [%collapsible%open]
@@ -1043,12 +1042,12 @@ include::links/src/main/java/payroll/OrderModelAssembler.java[]
 ====
 
 This resource assembler always includes the *self* link to the single-item resource as well as a link back to the aggregate root.
-But it also includes two conditional links to `OrderController.cancel(id)` as well as `OrderController.complete(id)` (not yet defined). These
-links are ONLY shown when the order's status is `Status.IN_PROGRESS`.
+However, it also includes two conditional links to `OrderController.cancel(id)` as well as `OrderController.complete(id)` (not yet defined). These
+links are shown only when the order's status is `Status.IN_PROGRESS`.
 
 If clients can adopt HAL and the ability to read links instead of simply reading the data of plain old JSON, they can trade
-in the need for domain knowledge about the order system. This naturally reduces coupling between client and server. And it
-opens the door to tuning the flow of order fulfillment without breaking clients in the process.
+in the need for domain knowledge about the order system. This naturally reduces coupling between client and server. It
+also opens the door to tuning the flow of order fulfillment without breaking clients in the process.
 
 To round out order fulfillment, add the following to the `OrderController` for the `cancel` operation:
 
@@ -1061,10 +1060,10 @@ include::links/src/main/java/payroll/OrderController.java[tag=delete]
 ----
 ====
 
-It checks the `Order` status before allowing it to be cancelled. If it's not a valid state, it returns an https://tools.ietf.org/html/rfc7807[RFC-7807] `Problem`,
+It checks the `Order` status before letting it be cancelled. If it is not a valid state, it returns an https://tools.ietf.org/html/rfc7807[RFC-7807] `Problem`,
 a hypermedia-supporting error container. If the transition is indeed valid, it transitions the `Order` to `CANCELLED`.
 
-And add this to the `OrderController` as well for order completion:
+Now we need to add this to the `OrderController` as well for order completion:
 
 .Creating a "complete" operation in the OrderController
 [%collapsible%open]
@@ -1079,7 +1078,7 @@ This implements similar logic to prevent an `Order` status from being completed 
 
 // The &#8203; entity is a zero-width space and seems to allow us to have the 's' right next to the `Order`; having no space after breaks the inline code formatting. 
 
-Let's update `LoadDatabase` to pre-load some `Order`&#8203;s along with the `Employee`&#8203;s it was loading before.
+Let's update `LoadDatabase` to pre-load some `Order` objectss along with the `Employee` objects it was loading before.
 
 .Updating the database pre-loader
 [%collapsible%open]
@@ -1090,7 +1089,7 @@ include::links/src/main/java/payroll/LoadDatabase.java[]
 ----
 ====
 
-Now you can test things out! Restart your application to make sure you are running the latest code changes. To use the newly minted order service, just perform a few operations:
+Now you can test. Restart your application to make sure you are running the latest code changes. To use the newly minted order service, you can perform a few operations:
 
 ----
 $ curl -v http://localhost:8080/orders | json_pp
@@ -1147,16 +1146,16 @@ $ curl -v http://localhost:8080/orders | json_pp
 
 This HAL document immediately shows different links for each order, based upon its present state.
 
-* The first order, being *COMPLETED* only has the navigational links. The state transition links are not shown.
-* The second order, being *IN_PROGRESS* additionally has the *cancel* link as well as the *complete* link.
+* The first order, being *COMPLETED*, only has the navigational links. The state transition links are not shown.
+* The second order, being *IN_PROGRESS*, additionally has the *cancel* link as well as the *complete* link.
 
-Try cancelling an order:
+Now try cancelling an order:
 
 ----
 $ curl -v -X DELETE http://localhost:8080/orders/4/cancel | json_pp
 ----
 
-NOTE: You may need to replace the number 4 in the URL above based on the specific IDs in your database. That information can be found from the previous `/orders` call.
+NOTE: You may need to replace the number 4 in the preceding URL, based on the specific IDs in your database. That information can be found from the previous `/orders` call.
 
 [%collapsible%open]
 ====
@@ -1187,10 +1186,10 @@ NOTE: You may need to replace the number 4 in the URL above based on the specifi
 ----
 ====
 
-This response shows an *HTTP 200* status code indicating it was successful. The response HAL document shows that order in its
-new state (`CANCELLED`). And the state-altering links gone.
+This response shows an *HTTP 200* status code, indicating that it was successful. The response HAL document shows that order in its
+new state (`CANCELLED`). Also, the state-altering links gone.
 
-If you try the same operation again...
+Now try the same operation again:
 
 ----
 $ curl -v -X DELETE http://localhost:8080/orders/4/cancel | json_pp
@@ -1218,8 +1217,8 @@ $ curl -v -X DELETE http://localhost:8080/orders/4/cancel | json_pp
 ----
 ====
 
-...you see an *HTTP 405 Method Not Allowed* response. *DELETE* has become an invalid operation. The `Problem` response
-object clearly indicates that you aren't allowed to "cancel" an order already in the "CANCELLED" status.
+You can see an *HTTP 405 Method Not Allowed* response. *DELETE* has become an invalid operation. The `Problem` response
+object clearly indicates that you are not allowed to "cancel" an order already in the "CANCELLED" status.
 
 Additionally, trying to complete the same order also fails:
 
@@ -1252,25 +1251,25 @@ $ curl -v -X PUT localhost:8080/orders/4/complete | json_pp
 With all this in place, your order fulfillment service is capable of conditionally showing what operations are available. It
 also guards against invalid operations.
 
-By leveraging the protocol of hypermedia and links, clients can be built sturdier and less likely to break simply because
-of a change in the data. And Spring HATEOAS eases building the hypermedia you need to serve to your clients.
+By using the protocol of hypermedia and links, clients can be made sturdier and be less likely to break simply because
+of a change in the data. Spring HATEOAS eases building the hypermedia you need to serve to your clients.
 
 == Summary
 
-Throughout this tutorial, you have engaged in various tactics to build REST APIs. As it turns out, REST isn't just about pretty URIs and returning JSON instead of XML.
+Throughout this tutorial, you have engaged in various tactics to build REST APIs. As it turns out, REST is not just about pretty URIs and returning JSON instead of XML.
 
 Instead, the following tactics help make your services less likely to break existing clients you may or may not control:
 
-* Don't remove old fields. Instead, support them.
-* Use rel-based links so clients don't have to hard code URIs.
-* Retain old links as long as possible. Even if you have to change the URI, keep the rels so older clients 
-  have a path onto the newer features.
+* Do not remove old fields. Instead, support them.
+* Use rel-based links so clients need not hard code URIs.
+* Retain old links as long as possible. Even if you have to change the URI, keep the rels so that older clients 
+  have a path to the newer features.
 * Use links, not payload data, to instruct clients when various state-driving operations are available.
 
 It may appear to be a bit of effort to build up `RepresentationModelAssembler` implementations for each 
-resource type and to use these components in all of your controllers. But this extra bit of server-side 
+resource type and to use these components in all of your controllers. However, this extra bit of server-side 
 setup (made easy thanks to Spring HATEOAS) can ensure the clients you control (and more importantly, those 
-you don't) can upgrade with ease as you evolve your API.
+you do not control) can upgrade with ease as you evolve your API.
 
 This concludes our tutorial on how to build RESTful services using Spring. Each section of this tutorial is managed as a separate
 subproject in a single github repo:
@@ -1280,9 +1279,9 @@ subproject in a single github repo:
 * *evolution* — REST app where a field is evolved but old data is retained for backward compatibility
 * *links* — REST app where conditional links are used to signal valid state changes to clients
 
-To view more examples of using Spring HATEOAS see https://github.com/spring-projects/spring-hateoas-examples.
+To view more examples of using Spring HATEOAS, see https://github.com/spring-projects/spring-hateoas-examples.
 
-To do some more exploring check out the following video by Spring teammate Oliver Drotbohm:
+To do some more exploring, check out the following video by Spring teammate Oliver Drotbohm:
 
 video::WDBUlu_lYas[youtube]
 
