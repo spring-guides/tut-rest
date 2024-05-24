@@ -52,7 +52,6 @@ class EmployeeController {
 				return repository.save(employee);
 			})
 			.orElseGet(() -> {
-				newEmployee.setId(id);
 				return repository.save(newEmployee);
 			});
 	}
