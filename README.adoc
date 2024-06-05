@@ -56,7 +56,7 @@ As we work through this tutorial, we use https://spring.io/projects/spring-boot[
 * Spring Data JPA
 * H2 Database
 
-Change the Name to "Payroll" and then choose *Generate Project8. A `.zip` file downloads. Unzip it. Inside, you should find a simple, Maven-based project that includes a `pom.xml` build file. (Note: You can use Gradle. The examples in this tutorial will be Maven-based.)
+Change the Name to "Payroll" and then choose *Generate Project*. A `.zip` file downloads. Unzip it. Inside, you should find a simple, Maven-based project that includes a `pom.xml` build file. (Note: You can use Gradle. The examples in this tutorial will be Maven-based.)
 
 To complete the tutorial, you could start a new project from scratch or you could look at the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
 
