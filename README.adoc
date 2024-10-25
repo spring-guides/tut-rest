@@ -398,7 +398,9 @@ You also need to include new imports:
 ====
 [source,java]
 ----
+import java.util.stream.Collectors;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 ----
 ====
