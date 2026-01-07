@@ -362,7 +362,7 @@ What needs to be done to make the REST architectural style clear on the notion t
 ____
 
 
-The side effect of nnot including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
+The side effect of not including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
 
 [#_spring_hateoas]
 == Spring HATEOAS
