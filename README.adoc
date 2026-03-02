@@ -362,7 +362,7 @@ What needs to be done to make the REST architectural style clear on the notion t
 ____
 
 
-The side effect of nnot including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
+The side effect of not including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
 
 [#_spring_hateoas]
 == Spring HATEOAS
@@ -728,8 +728,8 @@ This class is similar to the previous version of `Employee`, with a few changes:
 * A "virtual" getter for the old `name` property, `getName()`, is defined. It uses the `firstName` and `lastName` fields to produce a value.
 * A "virtual" setter for the old `name` property, `setName()`, is also defined. It parses an incoming string and stores it into the proper fields.
 
-Of course, not change to your API is as simple as splitting a string or merging two strings. But 
-itis surely not impossible to come up with a set of transforms for most scenarios, right?
+Of course, no change to your API is as simple as splitting a string or merging two strings. But 
+it is surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
