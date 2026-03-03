@@ -350,7 +350,7 @@ So far, you have a web-based service that handles the core operations that invol
 * Merely using `GET`, `POST`, and so on is not REST.
 * Having all the CRUD operations laid out is not REST.
 
-In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*), because there is no way to know how to interact with this service. If you published this today, you wouldd also have to write a document or host a developer's portal somewhere with all the details.
+In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*), because there is no way to know how to interact with this service. If you published this today, you would also have to write a document or host a developer's portal somewhere with all the details.
 
 This statement of Roy Fielding's may further lend a clue to the difference between *REST* and *RPC*:
 
@@ -362,7 +362,7 @@ What needs to be done to make the REST architectural style clear on the notion t
 ____
 
 
-The side effect of nnot including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
+The side effect of not including hypermedia in our representations is that clients must hard-code URIs to navigate the API. This leads to the same brittle nature that predated the rise of e-commerce on the web. It signifies that our JSON output needs a little help.
 
 [#_spring_hateoas]
 == Spring HATEOAS
