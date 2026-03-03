@@ -350,7 +350,7 @@ So far, you have a web-based service that handles the core operations that invol
 * Merely using `GET`, `POST`, and so on is not REST.
 * Having all the CRUD operations laid out is not REST.
 
-In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*), because there is no way to know how to interact with this service. If you published this today, you wouldd also have to write a document or host a developer's portal somewhere with all the details.
+In fact, what we have built so far is better described as *RPC* (*Remote Procedure Call*), because there is no way to know how to interact with this service. If you published this today, you would also have to write a document or host a developer's portal somewhere with all the details.
 
 This statement of Roy Fielding's may further lend a clue to the difference between *REST* and *RPC*:
 
@@ -729,7 +729,7 @@ This class is similar to the previous version of `Employee`, with a few changes:
 * A "virtual" setter for the old `name` property, `setName()`, is also defined. It parses an incoming string and stores it into the proper fields.
 
 Of course, not change to your API is as simple as splitting a string or merging two strings. But 
-itis surely not impossible to come up with a set of transforms for most scenarios, right?
+it is surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
