@@ -729,7 +729,7 @@ This class is similar to the previous version of `Employee`, with a few changes:
 * A "virtual" setter for the old `name` property, `setName()`, is also defined. It parses an incoming string and stores it into the proper fields.
 
 Of course, not change to your API is as simple as splitting a string or merging two strings. But 
-itis surely not impossible to come up with a set of transforms for most scenarios, right?
+it is surely not impossible to come up with a set of transforms for most scenarios, right?
 
 [IMPORTANT] 
 ==== 
