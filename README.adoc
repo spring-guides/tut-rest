@@ -35,11 +35,11 @@ By building on top of HTTP, REST APIs provide the means to build:
 
 * Backwards compatible APIs
 * Evolvable APIs
-* Scaleable services
+* Scalable services
 * Securable services
 * A spectrum of stateless to stateful services
 
-Note that REST, however ubiquitous, is not a standard _per se_ but an approach, a style, a set of _constraints_ on your architecture that can help you build web-scale systems. This tutorial uses the Spring portfolio to build a RESTful service while takin advantage of the stackless features of REST.
+Note that REST, however ubiquitous, is not a standard _per se_ but an approach, a style, a set of _constraints_ on your architecture that can help you build web-scale systems. This tutorial uses the Spring portfolio to build a RESTful service while taking advantage of the stackless features of REST.
 
 == Getting Started
 
@@ -58,7 +58,7 @@ As we work through this tutorial, we use https://spring.io/projects/spring-boot[
 
 Change the Name to "Payroll" and then choose *Generate Project*. A `.zip` file downloads. Unzip it. Inside, you should find a simple, Maven-based project that includes a `pom.xml` build file. (Note: You can use Gradle. The examples in this tutorial will be Maven-based.)
 
-To complete the tutorial, you could start a new project from scratch or you could look at the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
+To complete the tutorial, you could start a new project from scratch, or you could look at the https://github.com/spring-guides/tut-rest[solution repository] in GitHub.
 
 If you choose to create your own blank project, this tutorial walks you through building your application sequentially. You do not need multiple modules.
 
@@ -262,7 +262,7 @@ Doing so yields the following:
 ----
 ====
 
-You can see the pre-loaded data in a compacted format.
+You can see the preloaded data in a compacted format.
 
 Now try to query a user that doesn't exist, as follows:
 
@@ -826,7 +826,7 @@ The `Employee` object built by the `save()` operation is then wrapped in the `Em
 
 Since we want a more detailed HTTP response code than *200 OK*, we use Spring MVC's `ResponseEntity` wrapper. It has a handy
 static method (`created()`) where we can plug in the resource's URI.
-It is debatable whether *HTTP 201 Created* carries the right semantics, since we do not necessarily "create" a new resource. However, it comes pre-loaded with a *Location* response header, so we use it. Restart your application, run the following command, and observe the results:
+It is debatable whether *HTTP 201 Created* carries the right semantics, since we do not necessarily "create" a new resource. However, it comes preloaded with a *Location* response header, so we use it. Restart your application, run the following command, and observe the results:
 
 ----
 $ curl -v -X PUT localhost:8080/employees/3 -H 'Content-Type:application/json' -d '{"name": "Samwise Gamgee", "role": "ring bearer"}' | json_pp
@@ -1078,9 +1078,9 @@ This implements similar logic to prevent an `Order` status from being completed 
 
 // The &#8203; entity is a zero-width space and seems to allow us to have the 's' right next to the `Order`; having no space after breaks the inline code formatting. 
 
-Let's update `LoadDatabase` to pre-load some `Order` objectss along with the `Employee` objects it was loading before.
+Let's update `LoadDatabase` to preload some `Order` objectss along with the `Employee` objects it was loading before.
 
-.Updating the database pre-loader
+.Updating the database preloader
 [%collapsible%open]
 ====
 [source,java,tabsize=2,indent=0]
