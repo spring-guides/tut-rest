@@ -306,6 +306,11 @@ If you use Windows command prompt to issue cURL commands, the following command 
 To create a new `Employee` record, use the following command in a terminal (the `$` at the beginning signifies that what follows it is a terminal command):
 ----
 $ curl -X POST localhost:8080/employees -H 'Content-type:application/json' -d '{"name": "Samwise Gamgee", "role": "gardener"}'
+
+----
+# Windows PowerShell
+curl -X POST "localhost:8080/employees" -H "Content-type:application/json" -d "{`"name`": `"Samwise Gamgee`", `"role`": `"gardener`"}"
+
 ----
 
 Then it stores the newly created employee and sends it back to us:
